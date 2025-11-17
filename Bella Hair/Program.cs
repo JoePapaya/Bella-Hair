@@ -1,30 +1,16 @@
-using Bella_Hair.Components;
+using BellaHair.Application;
+using BellaHair.Application.Interfaces;
+using BellaHair.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Blazor services...
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Our data service
+builder.Services.AddSingleton<IDataService, InMemoryDataService>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
-
-app.UseHttpsRedirection();
-
-app.UseStaticFiles();
-app.UseAntiforgery();
-
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
-
-app.Run();
-
-
-//Test til push GitHub
+// rest of Program.cs...
