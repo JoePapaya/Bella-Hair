@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BellaHair.Application\BellaHair.Application.csproj" />
     <ProjectReference Include="..\BellaHair.Domain\BellaHair.Domain.csproj" />
+    <ProjectReference Include="..\BellaHair.Infrastructure\BellaHair.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
