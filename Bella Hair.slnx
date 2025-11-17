@@ -1,3 +1,7 @@
 <Solution>
-  <Project Path="Bella Hair/Bella Hair.csproj" />
+  <Project Path="Bella Hair/BellaHair.UI.csproj" />
+  <Project Path="BellaHair.Application/BellaHair.Application.csproj" Id="b057d9b9-6df2-455e-a485-81ff28305979" />
+  <Project Path="BellaHair.Domain/BellaHair.Domain.csproj" Id="b0e986de-0f17-43b0-991b-ab48062b3708" />
+  <Project Path="BellaHair.Infrastructure/BellaHair.Infrastructure.csproj" Id="ff006c5a-d4f7-4557-8fa2-70caecc99eb4" />
+  <Project Path="BellaHair.Test/BellaHair.Test.csproj" Id="e76c4b44-8634-4ee7-94b7-6962329959ce" />
 </Solution>
