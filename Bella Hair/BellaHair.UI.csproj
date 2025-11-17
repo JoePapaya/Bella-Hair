@@ -1,17 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Bella Hair</RootNamespace>
-    <AssemblyName>$(AssemblyName.Replace(' ', '_'))</AssemblyName>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>Bella_Hair</RootNamespace>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\BellaHair.Application\BellaHair.Application.csproj" />
-    <ProjectReference Include="..\BellaHair.Domain\BellaHair.Domain.csproj" />
-    <ProjectReference Include="..\BellaHair.Infrastructure\BellaHair.Infrastructure.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\BellaHair.Application\BellaHair.Application.csproj" />
+		<ProjectReference Include="..\BellaHair.Domain\BellaHair.Domain.csproj" />
+		<ProjectReference Include="..\BellaHair.Infrastructure\BellaHair.Infrastructure.csproj" />
+	</ItemGroup>
 
 </Project>

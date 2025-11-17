@@ -1,16 +1,30 @@
-using BellaHair.Application;
+using Bella_Hair.Components;                 // matcher RootNamespace + ".Components"
 using BellaHair.Application.Interfaces;
 using BellaHair.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Blazor services...
+// Blazor / Razor Components
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Our data service
+// Vores DataService
 builder.Services.AddSingleton<IDataService, InMemoryDataService>();
 
 var app = builder.Build();
 
-// rest of Program.cs...
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseAntiforgery();
+
+// Kører App.razor som root-komponent
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
+app.Run();
