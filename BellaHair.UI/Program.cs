@@ -1,9 +1,13 @@
 using Bella_Hair.Components;
 using BellaHair.Application.Interfaces;
 using BellaHair.Infrastructure;
+using BellaHair.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Blazor / Razor Components
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
