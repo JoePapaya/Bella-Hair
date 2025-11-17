@@ -1,4 +1,11 @@
-﻿<div class="p-8">
+﻿@page "/bookinger"
+@using BellaHair.Domain.Entities
+@using BellaHair.Domain.Services
+@inject BellaHair.Interfaces
+
+
+
+<div class="p-8">
     <div class="flex items-center justify-between mb-8">
         <div>
             <h1 class="text-gray-900 mb-2">Bookinger</h1>
@@ -132,64 +139,54 @@
     </div>
 }
 
-
 @code {
-
     private string selectedStatus = "all";
     private bool showNewBookingDialog = false;
-    private int? deleteBookingId = null;
+    private int? deleteBookingId;
 
-    private IEnumerable<Booking> SortedFilteredBookinger
-    {
-        get
-        {
-            var bookings = selectedStatus == "all"
-                ? DataService.Bookinger
-                : DataService.Bookinger.Where(b => b.Status.ToString() == selectedStatus);
-
-            return bookings.OrderByDescending(b => b.Tidspunkt);
-        }
-    }
+    private IEnumerable<Booking> SortedFilteredBookinger =>
+        DataService.Bookinger
+            .Where(b => selectedStatus == "all" || b.Status.ToString() == selectedStatus)
+            .OrderBy(b => b.Tidspunkt);
 
     private string GetFilterButtonClass(string status)
     {
-        var baseClass = "px-4 py-2 rounded-lg";
-        return selectedStatus == status
-            ? $"{baseClass} bg-blue-600 text-white"
-            : $"{baseClass} border border-gray-300 text-gray-700 hover:bg-gray-50";
+        var common = "px-3 py-1 rounded-lg border text-sm ";
+        if (selectedStatus == status)
+        {
+            return common + "bg-blue-600 text-white border-blue-600";
+        }
+        return common + "bg-white text-gray-700 border-gray-300 hover:bg-gray-50";
     }
 
-    private string GetStatusTitle()
-    {
-        return selectedStatus == "all" ? "Alle Bookinger" : $"{selectedStatus} Bookinger";
-    }
-
-    private string GetStatusBadgeClass(BookingStatus status)
-    {
-        return status switch
+    private string GetStatusBadgeClass(BookingStatus status) =>
+        status switch
         {
             BookingStatus.Bekræftet => "bg-green-100 text-green-700",
             BookingStatus.Afventer => "bg-yellow-100 text-yellow-700",
-            BookingStatus.Gennemført => "bg-blue-100 text-blue-700",
-            BookingStatus.Annulleret => "bg-red-100 text-red-700",
+            BookingStatus.Gennemført => "bg-gray-100 text-gray-700",
             _ => "bg-gray-100 text-gray-700"
         };
-    }
+
+    private string GetStatusTitle() =>
+        selectedStatus switch
+        {
+            "Bekræftet" => "Bekræftede bookinger",
+            "Afventer" => "Afventende bookinger",
+            "Gennemført" => "Gennemførte bookinger",
+            _ => "Alle bookinger"
+        };
 
     private void EditBooking(int bookingId)
     {
-        // In a real app, this would open an edit dialog
+        // TODO: open dialog or navigate to edit page
     }
 
-    private void DeleteBooking()
+    private async Task DeleteBooking()
     {
         if (deleteBookingId.HasValue)
         {
-            var booking = DataService.Bookinger.FirstOrDefault(b => b.BookingId == deleteBookingId.Value);
-            if (booking != null)
-            {
-                DataService.Bookinger.Remove(booking);
-            }
+            await DataService.DeleteBookingAsync(deleteBookingId.Value);
             deleteBookingId = null;
         }
     }
