@@ -17,5 +17,11 @@ namespace BellaHair.Application.Interfaces
 
         Task DeleteBookingAsync(int bookingId);
 
+        Task AddMedarbejderAsync(Medarbejder medarbejder);
+        Task UpdateMedarbejderAsync(Medarbejder medarbejder);
+        Task DeleteMedarbejderAsync(int medarbejderId);
+        Task<Medarbejder?> GetMedarbejderAsync(int medarbejderId);
+
+
     }
 }

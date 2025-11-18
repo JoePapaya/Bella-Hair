@@ -37,8 +37,8 @@ namespace BellaHair.Infrastructure
             Behandlinger.Add(behandling1);
             Behandlinger.Add(behandling2);
 
-            var medarbejder1 = new Medarbejder { MedarbejderId = 1, Navn = "Maria" };
-            var medarbejder2 = new Medarbejder { MedarbejderId = 2, Navn = "Sofie" };
+            var medarbejder1 = new Medarbejder { MedarbejderId = 1, Navn = "Maria", ErFreelancer = true, Kompetencer = new List<string> { "Dameklip", "Herreklip" } };
+            var medarbejder2 = new Medarbejder { MedarbejderId = 2, Navn = "Sofie", ErFreelancer = false, Kompetencer = new List<string> { "Børneklip", "Happy Ending" } };
 
             Medarbejdere.Add(medarbejder1);
             Medarbejdere.Add(medarbejder2);
@@ -95,6 +95,46 @@ namespace BellaHair.Infrastructure
 
             return Task.CompletedTask;
         }
+
+        public Task AddMedarbejderAsync(Medarbejder medarbejder)
+        {
+            medarbejder.MedarbejderId = Medarbejdere.Any()
+                ? Medarbejdere.Max(m => m.MedarbejderId) + 1
+                : 1;
+
+            Medarbejdere.Add(medarbejder);
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateMedarbejderAsync(Medarbejder medarbejder)
+        {
+            var existing = Medarbejdere.FirstOrDefault(x => x.MedarbejderId == medarbejder.MedarbejderId);
+            if (existing != null)
+            {
+                existing.Navn = medarbejder.Navn;
+                existing.ErFreelancer = medarbejder.ErFreelancer;
+                existing.Kompetencer = medarbejder.Kompetencer;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteMedarbejderAsync(int medarbejderId)
+        {
+            var medarbejder = Medarbejdere.FirstOrDefault(x => x.MedarbejderId == medarbejderId);
+            if (medarbejder != null)
+                Medarbejdere.Remove(medarbejder);
+
+            return Task.CompletedTask;
+        }
+
+        public Task<Medarbejder?> GetMedarbejderAsync(int medarbejderId)
+        {
+            var medarbejder = Medarbejdere.FirstOrDefault(x => x.MedarbejderId == medarbejderId);
+            return Task.FromResult(medarbejder);
+        }
+
+
 
 
 
