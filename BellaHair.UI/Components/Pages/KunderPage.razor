@@ -1,8 +1,8 @@
-﻿@using BellaHair.Domain.Entities
+﻿@page "/kunder"
+
+@using BellaHair.Domain.Entities
 @using BellaHair.Domain.Services
 @inject BellaHair.Application.Interfaces.IDataService DataService
-
-
 
 <div class="p-8">
     <div class="flex items-center justify-between mb-8">
@@ -35,7 +35,9 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @foreach (var kunde in FilteredKunder)
         {
-            var isBirthdayMonth = kunde.Fødselsdag.Month == DateTime.Now.Month;
+            // Hvis Fødselsdag er DateTime? (nullable), så fungerer ?? DateTime.MinValue fint
+            var fødselsdag = kunde.Fødselsdag;
+            var isBirthdayMonth = fødselsdag.Month == DateTime.Now.Month;
 
             <div class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
                 <div class="p-6">
@@ -99,21 +101,23 @@
 </div>
 
 @code {
-
-    private string searchTerm = "";
+    private string searchTerm = string.Empty;
 
     private IEnumerable<Kunde> FilteredKunder
     {
         get
         {
+            var kunder = DataService.Kunder ?? Array.Empty<Kunde>();
+
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return DataService.Kunder;
+                return kunder;
 
             var search = searchTerm.ToLower();
-            return DataService.Kunder.Where(k =>
-                k.Navn.ToLower().Contains(search) ||
-                k.Email.ToLower().Contains(search) ||
-                k.Telefon.Contains(search)
+
+            return kunder.Where(k =>
+                (!string.IsNullOrEmpty(k.Navn) && k.Navn.ToLower().Contains(search)) ||
+                (!string.IsNullOrEmpty(k.Email) && k.Email.ToLower().Contains(search)) ||
+                (!string.IsNullOrEmpty(k.Telefon) && k.Telefon.Contains(search))
             );
         }
     }
@@ -133,5 +137,4 @@
             _ => "bg-gray-200 text-gray-600"
         };
     }
-
 }
