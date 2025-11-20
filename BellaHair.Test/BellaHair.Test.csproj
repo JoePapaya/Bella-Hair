@@ -24,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Bella Hair\BellaHair.UI.csproj" />
     <ProjectReference Include="..\BellaHair.Application\BellaHair.Application.csproj" />
     <ProjectReference Include="..\BellaHair.Domain\BellaHair.Domain.csproj" />
     <ProjectReference Include="..\BellaHair.Infrastructure\BellaHair.Infrastructure.csproj" />
