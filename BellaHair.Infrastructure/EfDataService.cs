@@ -104,4 +104,37 @@ public class EfDataService : IDataService
         db.Bookinger.Remove(booking);
         await db.SaveChangesAsync();
     }
+
+    // ---------- Kunde ----------
+    public async Task AddKundeAsync(Kunde kunde)
+    {
+        await using var db = CreateContext();
+        db.Kunder.Add(kunde);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task UpdateKundeAsync(Kunde kunde)
+    {
+        await using var db = CreateContext();
+        db.Kunder.Update(kunde);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task DeleteKundeAsync(int kundeId)
+    {
+        await using var db = CreateContext();
+        var existing = await db.Kunder.FindAsync(kundeId);
+        if (existing is null) return;
+
+        db.Kunder.Remove(existing);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task<Kunde?> GetKundeAsync(int kundeId)
+    {
+        await using var db = CreateContext();
+        return await db.Kunder
+            .FirstOrDefaultAsync(k => k.KundeId == kundeId);
+    }
+
 }

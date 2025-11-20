@@ -17,11 +17,17 @@ namespace BellaHair.Application.Interfaces
 
         Task DeleteBookingAsync(int bookingId);
 
+        // ---------- Medarbejder ----------
+
         Task AddMedarbejderAsync(Medarbejder medarbejder);
         Task UpdateMedarbejderAsync(Medarbejder medarbejder);
         Task DeleteMedarbejderAsync(int medarbejderId);
         Task<Medarbejder?> GetMedarbejderAsync(int medarbejderId);
 
-
+        // ---------- Kunde ----------
+        Task AddKundeAsync(Kunde kunde);
+        Task UpdateKundeAsync(Kunde kunde);
+        Task DeleteKundeAsync(int kundeId);
+        Task<Kunde?> GetKundeAsync(int kundeId);
     }
 }

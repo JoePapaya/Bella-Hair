@@ -1,7 +1,9 @@
 ﻿@page "/kunder"
+@rendermode InteractiveServer
 
 @using BellaHair.Domain.Entities
 @inject BellaHair.Application.Interfaces.IDataService DataService
+@inject IJSRuntime JSRuntime
 
 <div class="p-8">
     <div class="flex items-center justify-between mb-8">
@@ -9,7 +11,7 @@
             <h1 class="text-gray-900 mb-2">Kunder</h1>
             <p class="text-gray-600">Administrer dine kunder og loyalitetsprogram</p>
         </div>
-        <button @onclick="OpenDialog" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button @onclick="OpenNewKunde" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
@@ -92,14 +94,80 @@
                             <span class="text-gray-900">@kunde.BesøgAntal</span>
                         </div>
                     </div>
+
+                    <div class="pt-3 mt-3 border-t border-gray-100 flex gap-2">
+                        <button type="button"
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                @onclick="@(() => EditKunde(kunde.KundeId))">
+                            Rediger
+                        </button>
+                        <button type="button"
+                                class="flex-1 px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                                @onclick="@(() => ConfirmDeleteKunde(kunde.KundeId))">
+                            Slet
+                        </button>
+                    </div>
                 </div>
             </div>
         }
     </div>
 </div>
 
+@if (showModal)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md">
+            <h2 class="text-xl mb-4 font-semibold">
+                @(isEdit ? "Rediger kunde" : "Ny kunde")
+            </h2>
+
+            <div class="space-y-3">
+                <input class="w-full border p-2 rounded" placeholder="Navn" @bind="current.Navn" />
+
+                <input class="w-full border p-2 rounded" placeholder="Email" @bind="current.Email" />
+
+                <input class="w-full border p-2 rounded" placeholder="Telefon" @bind="current.Telefon" />
+
+                <input class="w-full border p-2 rounded" placeholder="Adresse" @bind="current.Adresse" />
+
+                <div class="flex gap-2">
+                    <input class="w-1/2 border p-2 rounded" placeholder="Postnr" @bind="current.Postnr" />
+                    <input class="w-1/2 border p-2 rounded" placeholder="By" @bind="current.By" />
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Fødselsdag</label>
+                    <input type="date" class="w-full border p-2 rounded" @bind="fødselsdagInput" />
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Loyalitet</label>
+                    <select class="w-full border p-2 rounded" @bind="current.LoyaltyTier">
+                        <option value="">Ingen</option>
+                        <option value="Bronze">Bronze</option>
+                        <option value="Sølv">Sølv</option>
+                        <option value="Guld">Guld</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 mt-6">
+                <button type="button" class="px-4 py-2 border rounded" @onclick="CloseModal">Annuller</button>
+                <button type="button" class="px-4 py-2 bg-blue-600 text-white rounded" @onclick="SaveKunde">Gem</button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private string searchTerm = string.Empty;
+
+    private bool showModal;
+    private bool isEdit;
+    private Kunde current = new();
+    private DateTime? fødselsdagInput;
+
+
 
     private IEnumerable<Kunde> FilteredKunder
     {
@@ -120,9 +188,84 @@
         }
     }
 
-    private void OpenDialog()
+    private void OpenNewKunde()
     {
-        // In a real app, this would open a dialog
+        isEdit = false;
+        current = new Kunde();
+        fødselsdagInput = null;
+        showModal = true;
+    }
+
+
+    private async Task EditKunde(int kundeId)
+    {
+        var kunde = await DataService.GetKundeAsync(kundeId);
+        if (kunde is null) return;
+
+        isEdit = true;
+        current = new Kunde
+        {
+            KundeId = kunde.KundeId,
+            Navn = kunde.Navn,
+            Adresse = kunde.Adresse,
+            Postnr = kunde.Postnr,
+            Email = kunde.Email,
+            By = kunde.By,
+            Points = kunde.Points,
+            Telefon = kunde.Telefon,
+            BesøgAntal = kunde.BesøgAntal,
+            LoyaltyTier = kunde.LoyaltyTier,
+            Fødselsdag = kunde.Fødselsdag
+        };
+
+        // DateOnly -> DateTime? for the date input
+        fødselsdagInput = current.Fødselsdag != default
+            ? current.Fødselsdag.ToDateTime(TimeOnly.MinValue)
+            : (DateTime?)null;
+
+
+        showModal = true;
+    }
+
+    private async Task SaveKunde()
+    {
+        // parse fødselsdag fra string til DateOnly
+        // map fødselsdagInput (DateTime?) -> DateOnly
+        if (fødselsdagInput.HasValue)
+        {
+            current.Fødselsdag = DateOnly.FromDateTime(fødselsdagInput.Value);
+        }
+        else
+        {
+            current.Fødselsdag = default;
+        }
+
+
+        if (isEdit)
+            await DataService.UpdateKundeAsync(current);
+        else
+            await DataService.AddKundeAsync(current);
+
+        showModal = false;
+        current = new Kunde();
+        fødselsdagInput = null;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task ConfirmDeleteKunde(int kundeId)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Er du sikker på du vil slette kunden?"))
+        {
+            await DataService.DeleteKundeAsync(kundeId);
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private string GetLoyaltyBadgeClass(string tier)
