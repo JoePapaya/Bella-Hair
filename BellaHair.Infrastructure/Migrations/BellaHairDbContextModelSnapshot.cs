@@ -87,10 +87,39 @@ namespace BellaHair.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("KundeId"));
 
+                    b.Property<string>("Adresse")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("BesøgAntal")
+                        .HasColumnType("int");
+
+                    b.Property<string>("By")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("Fødselsdag")
+                        .HasColumnType("date");
+
                     b.Property<string>("LoyaltyTier")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Navn")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Postnr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Telefon")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -106,6 +135,13 @@ namespace BellaHair.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MedarbejderId"));
+
+                    b.Property<bool>("ErFreelancer")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Kompetencer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Navn")
                         .IsRequired()

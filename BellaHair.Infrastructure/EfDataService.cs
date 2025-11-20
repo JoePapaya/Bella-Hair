@@ -1,0 +1,107 @@
+﻿using BellaHair.Application.Interfaces;
+using BellaHair.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace BellaHair.Infrastructure;
+
+public class EfDataService : IDataService
+{
+    private readonly IDbContextFactory<BellaHairDbContext> _factory;
+
+    public EfDataService(IDbContextFactory<BellaHairDbContext> factory)
+    {
+        _factory = factory;
+    }
+
+    // Helper: always get a fresh context
+    private BellaHairDbContext CreateContext() => _factory.CreateDbContext();
+
+    // ---------- Lists ----------
+    public IList<Booking> Bookinger
+    {
+        get
+        {
+            using var db = CreateContext();
+            return db.Bookinger.AsNoTracking().ToList();
+        }
+    }
+
+    public IList<Kunde> Kunder
+    {
+        get
+        {
+            using var db = CreateContext();
+            return db.Kunder.AsNoTracking().ToList();
+        }
+    }
+
+    public IList<Behandling> Behandlinger
+    {
+        get
+        {
+            using var db = CreateContext();
+            return db.Behandlinger.AsNoTracking().ToList();
+        }
+    }
+
+    public IList<Medarbejder> Medarbejdere
+    {
+        get
+        {
+            using var db = CreateContext();
+            return db.Medarbejdere.AsNoTracking().ToList();
+        }
+    }
+
+    public IList<Rabat> Rabatter
+    {
+        get
+        {
+            using var db = CreateContext();
+            return db.Rabatter.AsNoTracking().ToList();
+        }
+    }
+
+    // ---------- Medarbejder ----------
+    public async Task AddMedarbejderAsync(Medarbejder medarbejder)
+    {
+        await using var db = CreateContext();
+        db.Medarbejdere.Add(medarbejder);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task UpdateMedarbejderAsync(Medarbejder medarbejder)
+    {
+        await using var db = CreateContext();
+        db.Medarbejdere.Update(medarbejder);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task DeleteMedarbejderAsync(int medarbejderId)
+    {
+        await using var db = CreateContext();
+        var existing = await db.Medarbejdere.FindAsync(medarbejderId);
+        if (existing is null) return;
+
+        db.Medarbejdere.Remove(existing);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task<Medarbejder?> GetMedarbejderAsync(int medarbejderId)
+    {
+        await using var db = CreateContext();
+        return await db.Medarbejdere
+            .FirstOrDefaultAsync(m => m.MedarbejderId == medarbejderId);
+    }
+
+    // ---------- Booking ----------
+    public async Task DeleteBookingAsync(int bookingId)
+    {
+        await using var db = CreateContext();
+        var booking = await db.Bookinger.FindAsync(bookingId);
+        if (booking is null) return;
+
+        db.Bookinger.Remove(booking);
+        await db.SaveChangesAsync();
+    }
+}

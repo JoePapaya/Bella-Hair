@@ -1,17 +1,24 @@
 using Bella_Hair.Components;
 using BellaHair.Application.Interfaces;
 using BellaHair.Infrastructure;
-using BellaHair.Infrastructure;
+
 using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ?? Use DbContextFactory instead of a long-lived DbContext
+builder.Services.AddDbContextFactory<BellaHairDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// IDataService still scoped
+builder.Services.AddScoped<IDataService, EfDataService>();
+
+
 // Blazor / Razor Components
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-
-builder.Services.AddSingleton<IDataService, InMemoryDataService>();
 
 var app = builder.Build();
 

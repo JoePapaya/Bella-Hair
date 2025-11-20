@@ -1,4 +1,5 @@
 ﻿@page "/medarbejdere"
+@rendermode InteractiveServer
 @using BellaHair.Domain.Entities
 @inject BellaHair.Application.Interfaces.IDataService DataService
 @inject IJSRuntime JSRuntime
@@ -129,19 +130,38 @@
 
     async Task Save()
     {
-        current.Kompetencer = kompetencerRaw
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => x.Trim())
-            .ToList();
+        try
+        {
+            current.Kompetencer = kompetencerRaw
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .ToList();
 
-        if (isEdit)
-            await DataService.UpdateMedarbejderAsync(current);
-        else
-            await DataService.AddMedarbejderAsync(current);
+            if (isEdit)
+            {
+                await DataService.UpdateMedarbejderAsync(current);
+            }
+            else
+            {
+                await DataService.AddMedarbejderAsync(current);
+            }
 
-        showModal = false;
-        StateHasChanged();
+            // Close modal + clear form
+            showModal = false;
+            current = new Medarbejder();
+            kompetencerRaw = string.Empty;
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Fejl i Save: " + ex);
+
+            // For debugging so you can SEE the error in the browser:
+            await JSRuntime.InvokeVoidAsync("alert", $"Fejl ved gem: {ex.Message}");
+        }
     }
+
 
     void CloseModal() => showModal = false;
 

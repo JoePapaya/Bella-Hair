@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BellaHair.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -52,6 +52,14 @@ namespace BellaHair.Infrastructure.Migrations
                     KundeId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Navn = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Adresse = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Postnr = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Fødselsdag = table.Column<DateOnly>(type: "date", nullable: false),
+                    By = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Points = table.Column<int>(type: "int", nullable: false),
+                    Telefon = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BesøgAntal = table.Column<int>(type: "int", nullable: false),
                     LoyaltyTier = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -65,7 +73,9 @@ namespace BellaHair.Infrastructure.Migrations
                 {
                     MedarbejderId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Navn = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ErFreelancer = table.Column<bool>(type: "bit", nullable: false),
+                    Navn = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Kompetencer = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
