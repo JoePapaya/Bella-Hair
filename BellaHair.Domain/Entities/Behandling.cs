@@ -12,5 +12,6 @@ public class Behandling
     public string Navn { get; set; } = string.Empty;
     public decimal Pris { get; set; }
     public int VarighedMinutter { get; set; }
+    public string Type { get; set; } = string.Empty;
 }
 

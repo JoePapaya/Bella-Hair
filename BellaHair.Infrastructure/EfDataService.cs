@@ -137,4 +137,31 @@ public class EfDataService : IDataService
             .FirstOrDefaultAsync(k => k.KundeId == kundeId);
     }
 
+    // ---------- Behandling ----------
+    public async Task AddBehandlingAsync(Behandling behandling)
+    {
+        await using var db = CreateContext();
+        db.Behandlinger.Add(behandling);
+        await db.SaveChangesAsync();
+    }
+    public async Task UpdateBehandlingAsync(Behandling behandling)
+    {
+        await using var db = CreateContext();
+        db.Behandlinger.Update(behandling);
+        await db.SaveChangesAsync();
+    }
+    public async Task DeleteBehandlingAsync(int behandlingId)
+    {
+        await using var db = CreateContext();
+        var existing = await db.Behandlinger.FindAsync(behandlingId);
+        if (existing is null) return;
+        db.Behandlinger.Remove(existing);
+        await db.SaveChangesAsync();
+    }
+    public async Task<Behandling?> GetBehandlingAsync(int behandlingId)
+    {
+        await using var db = CreateContext();
+        return await db.Behandlinger
+            .FirstOrDefaultAsync(b => b.BehandlingId == behandlingId);
+    }
 }
