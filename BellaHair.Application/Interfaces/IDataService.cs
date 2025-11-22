@@ -15,7 +15,6 @@ namespace BellaHair.Application.Interfaces
         IList<Medarbejder> Medarbejdere { get; }
         IList<Rabat> Rabatter { get; }
 
-        Task DeleteBookingAsync(int bookingId);
 
         // ---------- Medarbejder ----------
 
