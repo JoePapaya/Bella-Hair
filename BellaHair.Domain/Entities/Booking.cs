@@ -17,7 +17,10 @@ public class Booking
     public DateTime Tidspunkt { get; set; }
     public int Varighed { get; set; }
 
-    // Shown as text in the badge
+    public DateTime Start => Tidspunkt;
+
+    public DateTime End => Tidspunkt.AddMinutes(Varighed);
+    
     public BookingStatus Status { get; set; }
 
     // Passed to DiscountCalc as booking.ValgtRabat

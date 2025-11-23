@@ -311,20 +311,32 @@
         isEditing = true;
         showDialog = true;
     }
+    private string? errorMessage;
 
     private async Task SaveBooking()
     {
+        errorMessage = null; // reset
+
         if (DateTime.TryParse(tidspunktInput, out var parsed))
             editModel.Tidspunkt = parsed;
 
-        if (isEditing)
-            await BookingAppService.UpdateAsync(editModel);
-        else
-            await BookingAppService.CreateAsync(editModel);
+        try
+        {
+            if (isEditing)
+                await BookingAppService.UpdateAsync(editModel);
+            else
+                await BookingAppService.CreateAsync(editModel);
 
-        showDialog = false;
-        StateHasChanged();
+            showDialog = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            await JSRuntime.InvokeVoidAsync("alert", errorMessage);
+        }
     }
+
 
     private void CloseDialog()
     {
