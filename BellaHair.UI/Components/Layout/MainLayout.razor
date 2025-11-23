@@ -8,7 +8,7 @@
             <h1 class="text-lg font-semibold text-gray-900">Salon Booking System</h1>
             <p class="text-xs text-gray-500">Administration</p>
         </div>
-
+        <!-- Dashboard Page -->
         <nav class="px-3 py-4 space-y-1 text-sm">
             <NavLink href="/dashboard"
                      Match="NavLinkMatch.All"
@@ -21,7 +21,7 @@
                 </svg>
                 <span>Dashboard</span>
             </NavLink>
-
+            <!-- Booking Page -->
             <NavLink href="/booking"
                      class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-50"
                      ActiveClass="bg-blue-50 text-blue-700">
@@ -32,6 +32,19 @@
                 </svg>
                 <span>Bookinger</span>
             </NavLink>
+            <!-- Kalender Page -->
+            <NavLink href="/kalender"
+                     class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-50"
+                     ActiveClass="bg-blue-50 text-blue-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7
+                 a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>Kalender</span>
+            </NavLink>
+            <!-- Kunder Page -->
+
 
             <NavLink href="/kunder"
                      class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-50"
@@ -43,6 +56,8 @@
                 </svg>
                 <span>Kunder</span>
             </NavLink>
+
+            <!-- Medarbejder Page -->
 
             <NavLink href="/medarbejdere"
                      class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-50"
@@ -57,6 +72,9 @@
                 </svg>
                 <span>Medarbejdere</span>
             </NavLink>
+
+            <!-- Behandlinger Page -->
+
             <NavLink href="/behandlinger"
                      class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-50"
                      ActiveClass="bg-blue-50 text-blue-700">

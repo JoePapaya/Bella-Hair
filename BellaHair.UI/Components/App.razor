@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using Bella_Hair.Components
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -13,7 +15,9 @@
     <HeadOutlet />
 </head>
 <body>
-    <Routes />
+    <!-- ✅ global interaktiv routing -->
+    <Routes @rendermode="InteractiveServer" />
+
     <script src="_framework/blazor.web.js"></script>
 </body>
 </html>

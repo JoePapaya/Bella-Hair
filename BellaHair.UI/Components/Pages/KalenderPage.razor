@@ -1,0 +1,294 @@
+﻿@page "/kalender"
+@rendermode InteractiveServer
+@using System.Globalization
+@using BellaHair.Domain.Entities
+@using BellaHair.Domain.Enums
+@inject BellaHair.Application.Interfaces.IDataService DataService
+
+<div class="p-8">
+    <!-- Top header (title on its own line) -->
+    <div class="mb-6">
+        <h1 class="text-gray-900 text-2xl font-semibold mb-1">Kalender</h1>
+    </div>
+
+    <!-- Controls: arrows + view mode buttons -->
+    <div class="flex items-center justify-between mb-6">
+        <!-- Left controls: arrows + today -->
+        <!-- Left controls: arrows + title in center + today button -->
+        <div class="flex items-center gap-4">
+
+            <!-- Prev arrow -->
+            <button @onclick="Prev"
+                    class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+
+            <!-- Center title -->
+            <div class="min-w-[250px] text-center">
+                <h2 class="text-gray-900 text-xl font-semibold capitalize">
+                    @PeriodTitle
+                </h2>
+            </div>
+
+            <!-- Next arrow -->
+            <button @onclick="Next"
+                    class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+
+            <!-- Today button -->
+            <button @onclick="GoToToday"
+                    class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
+                I dag
+            </button>
+        </div>
+
+
+        <!-- Right controls: view mode -->
+        <div class="flex gap-2">
+            <button @onclick="() => SetView(CalendarViewMode.Day)"
+                    class="px-3 py-1 rounded-lg text-sm
+                    @(ViewMode == CalendarViewMode.Day ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300")">
+                Dag
+            </button>
+
+            <button @onclick="() => SetView(CalendarViewMode.Week)"
+                    class="px-3 py-1 rounded-lg text-sm
+                    @(ViewMode == CalendarViewMode.Week ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300")">
+                Uge
+            </button>
+
+            <button @onclick="() => SetView(CalendarViewMode.Month)"
+                    class="px-3 py-1 rounded-lg text-sm
+                    @(ViewMode == CalendarViewMode.Month ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300")">
+                Måned
+            </button>
+        </div>
+    </div>
+
+    <!-- Calendar renderer -->
+    @switch (ViewMode)
+    {
+        case CalendarViewMode.Day:
+            <div>
+                @if (!BookingsForDay(CurrentDate).Any())
+                {
+                    <div class="text-gray-500">Ingen bookinger denne dag.</div>
+                }
+                else
+                {
+                    @foreach (var booking in BookingsForDay(CurrentDate))
+                    {
+                        <div class="border p-4 rounded-lg bg-white shadow mb-3">
+                            <!-- time -->
+                            <div class="font-semibold text-gray-900">
+                                @booking.Start.ToString("HH:mm") - @booking.End.ToString("HH:mm")
+                            </div>
+
+                            <!-- kunde -->
+                            <div class="text-gray-700 mt-1">
+                                Kunde: @GetKundeNavn(booking)
+                            </div>
+
+                            <!-- medarbejder under kunde -->
+                            <div class="text-gray-700">
+                                Medarbejder: @GetMedarbejderNavn(booking)
+                            </div>
+
+                            <!-- behandling under medarbejder -->
+                            <div class="text-gray-700">
+                                Behandling: @GetBehandlingNavn(booking)
+                            </div>
+                        </div>
+                    }
+
+                }
+            </div>
+            break;
+
+        case CalendarViewMode.Week:
+            <div class="grid grid-cols-7 gap-3">
+                @foreach (var day in WeekDays(CurrentDate))
+                {
+                    <div class="border p-3 bg-gray-50 rounded-lg h-48 overflow-auto">
+                        <div class="font-semibold mb-2">@day.ToString("ddd dd/MM", da)</div>
+
+                        @foreach (var booking in BookingsForDay(day))
+                        {
+                            <div class="mb-1 p-1 bg-white rounded shadow text-xs">
+                                @booking.Start.ToString("HH:mm") — @GetKundeNavn(booking)
+                            </div>
+                        }
+
+                    </div>
+                }
+            </div>
+            break;
+
+        case CalendarViewMode.Month:
+            <div class="grid grid-cols-7 gap-3">
+                @foreach (var day in MonthCells(CurrentDate))
+                {
+                    var isCurrentMonth = day.Month == CurrentDate.Month;
+
+                    <div class="border p-2 rounded-lg h-32 overflow-auto @(isCurrentMonth ? "bg-white" : "bg-gray-100 text-gray-400")">
+                        <div class="font-semibold text-sm mb-1">@day.ToString("dd")</div>
+
+                        @foreach (var booking in BookingsForDay(day))
+                        {
+                            <div class="mb-1 p-1 bg-blue-50 text-blue-700 rounded shadow text-xs">
+                                @booking.Start.ToString("HH:mm") – @GetKundeNavn(booking)
+                            </div>
+                        }
+
+                    </div>
+                }
+            </div>
+            break;
+    }
+</div>
+
+@code {
+    private CalendarViewMode ViewMode = CalendarViewMode.Month;
+    private DateTime CurrentDate = DateTime.Today;
+    private List<Booking> Bookings = new();
+
+    private readonly CultureInfo da = new("da-DK");
+
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            Bookings = DataService.Bookinger?.ToList() ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Kalender fejl: " + ex.Message);
+            Bookings = new();
+        }
+    }
+
+    private string Capitalize(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return input;
+        return char.ToUpper(input[0], da) + input[1..];
+    }
+
+    // ---------- Title shown under "Kalender" ----------
+    private string PeriodTitle => ViewMode switch
+    {
+        CalendarViewMode.Day => Capitalize(CurrentDate.ToString("dddd d. MMMM yyyy", da)),
+        CalendarViewMode.Week => Capitalize(GetWeekTitle()),
+        CalendarViewMode.Month => Capitalize(CurrentDate.ToString("MMMM yyyy", da)),
+        _ => ""
+    };
+
+
+    private string GetWeekTitle()
+    {
+        var start = StartOfWeek(CurrentDate);
+        var end = start.AddDays(6);
+        int weekNo = ISOWeek.GetWeekOfYear(CurrentDate);
+
+        return $"Uge {weekNo} • {start:dd/MM} - {end:dd/MM yyyy}";
+    }
+
+    private DateTime StartOfWeek(DateTime date)
+    {
+        int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+        return date.AddDays(-diff).Date;
+    }
+
+    private void SetView(CalendarViewMode mode)
+    {
+        ViewMode = mode;
+        StateHasChanged();
+    }
+
+    private void Prev()
+    {
+        CurrentDate = ViewMode switch
+        {
+            CalendarViewMode.Day => CurrentDate.AddDays(-1),
+            CalendarViewMode.Week => CurrentDate.AddDays(-7),
+            CalendarViewMode.Month => CurrentDate.AddMonths(-1),
+            _ => CurrentDate
+        };
+
+        StateHasChanged();
+    }
+
+    private void Next()
+    {
+        CurrentDate = ViewMode switch
+        {
+            CalendarViewMode.Day => CurrentDate.AddDays(1),
+            CalendarViewMode.Week => CurrentDate.AddDays(7),
+            CalendarViewMode.Month => CurrentDate.AddMonths(1),
+            _ => CurrentDate
+        };
+
+        StateHasChanged();
+    }
+
+    private void GoToToday()
+    {
+        CurrentDate = DateTime.Today;
+        StateHasChanged();
+    }
+
+    // ---------- Helpers ----------
+    private IEnumerable<Booking> BookingsForDay(DateTime date)
+        => Bookings.Where(b => b.Start.Date == date.Date)
+                   .OrderBy(b => b.Start);
+
+    private IEnumerable<DateTime> WeekDays(DateTime date)
+    {
+        var start = StartOfWeek(date);
+        return Enumerable.Range(0, 7).Select(i => start.AddDays(i));
+    }
+
+    private IEnumerable<DateTime> MonthCells(DateTime date)
+    {
+        var first = new DateTime(date.Year, date.Month, 1);
+        var firstCell = StartOfWeek(first);
+        return Enumerable.Range(0, 35).Select(i => firstCell.AddDays(i));
+    }
+
+    private string GetKundeNavn(Booking b)
+    {
+        // If navigation property is set, use it
+        if (b.Kunde != null && !string.IsNullOrWhiteSpace(b.Kunde.Navn))
+            return b.Kunde.Navn;
+
+        // Otherwise look it up by ID
+        var kunde = DataService.Kunder.FirstOrDefault(k => k.KundeId == b.KundeId);
+        return kunde?.Navn ?? $"Kunde #{b.KundeId}";
+    }
+
+    private string GetMedarbejderNavn(Booking b)
+    {
+        if (b.Medarbejder != null && !string.IsNullOrWhiteSpace(b.Medarbejder.Navn))
+            return b.Medarbejder.Navn;
+
+        var medarbejder = DataService.Medarbejdere.FirstOrDefault(m => m.MedarbejderId == b.MedarbejderId);
+        return medarbejder?.Navn ?? $"Medarbejder #{b.MedarbejderId}";
+    }
+
+    private string GetBehandlingNavn(Booking b)
+    {
+        if (b.Behandling != null && !string.IsNullOrWhiteSpace(b.Behandling.Navn))
+            return b.Behandling.Navn;
+
+        var behandling = DataService.Behandlinger.FirstOrDefault(t => t.BehandlingId == b.BehandlingId);
+        return behandling?.Navn ?? $"Behandling #{b.BehandlingId}";
+    }
+
+}
