@@ -20,6 +20,13 @@ public class Booking
     public DateTime Start => Tidspunkt;
     public DateTime End => Tidspunkt.AddMinutes(Varighed);
 
+<<<<<<< HEAD
+=======
+    public DateTime Start => Tidspunkt;
+
+    public DateTime End => Tidspunkt.AddMinutes(Varighed);
+    
+>>>>>>> 480717a31ff5de04dbcc12f2b2f81e1084c3c622
     public BookingStatus Status { get; set; }
     public string? ValgtRabat { get; set; }
 

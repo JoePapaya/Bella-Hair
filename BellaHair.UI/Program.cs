@@ -16,6 +16,8 @@ builder.Services.AddDbContextFactory<BellaHairDbContext>(options =>
 builder.Services.AddScoped<IDataService, EfDataService>();
 
 builder.Services.AddScoped<IBookingApplicationService, BookingApplicationService>();
+builder.Services.AddScoped<IBookingValidationService, BookingValidationService>();
+
 builder.Services.AddScoped<IDataService, EfDataService>();
 
 // Blazor / Razor Components
