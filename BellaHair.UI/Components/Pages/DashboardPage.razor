@@ -1,4 +1,5 @@
 ﻿@page "/"
+@page "/dashboard"
 @using BellaHair.Domain.Entities
 @inject BellaHair.Application.Interfaces.IDataService DataService
 @inject IJSRuntime JSRuntime
@@ -14,44 +15,86 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
         <!-- Total Bookinger -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <p class="text-gray-600 text-sm mb-1">Total Bookinger</p>
-            <p class="text-gray-900">@DataService.Bookinger.Count</p>
+        <div class="bg-white rounded-lg border border-gray-200 p-6 flex items-center gap-4">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <!-- calendar icon -->
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-gray-600 text-sm mb-1">Total Bookinger</p>
+                <p class="text-gray-900 text-2xl font-semibold">@DataService.Bookinger.Count</p>
+            </div>
         </div>
 
         <!-- Aktive Kunder -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <p class="text-gray-600 text-sm mb-1">Aktive kunder</p>
-            <p class="text-gray-900">@DataService.Kunder.Count</p>
+        <div class="bg-white rounded-lg border border-gray-200 p-6 flex items-center gap-4">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <!-- users icon -->
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 11-8 0 4 4 0 018 0zm6 4a4 4 0 10-8 0 4 4 0 008 0z" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-gray-600 text-sm mb-1">Aktive kunder</p>
+                <p class="text-gray-900 text-2xl font-semibold">@DataService.Kunder.Count</p>
+            </div>
         </div>
 
         <!-- Tilgængelige behandlinger -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <p class="text-gray-600 text-sm mb-1">Behandlinger</p>
-            <p class="text-gray-900">@DataService.Behandlinger.Count</p>
+        <div class="bg-white rounded-lg border border-gray-200 p-6 flex items-center gap-4">
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <!-- scissors/briefcase icon -->
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 6l6 6-6 6M3 6h6M3 12h6M3 18h6" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-gray-600 text-sm mb-1">Behandlinger</p>
+                <p class="text-gray-900 text-2xl font-semibold">@DataService.Behandlinger.Count</p>
+            </div>
         </div>
 
         <!-- Medarbejdere -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-            <p class="text-gray-600 text-sm mb-1">Medarbejdere</p>
-            <p class="text-gray-900">@DataService.Medarbejdere.Count</p>
+        <div class="bg-white rounded-lg border border-gray-200 p-6 flex items-center gap-4">
+            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <!-- user-badge icon -->
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0zM12 3a9 9 0 100 18 9 9 0 000-18z" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-gray-600 text-sm mb-1">Medarbejdere</p>
+                <p class="text-gray-900 text-2xl font-semibold">@DataService.Medarbejdere.Count</p>
+            </div>
         </div>
     </div>
 
     <!-- Seneste bookinger -->
     <div class="bg-white rounded-lg border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
+        <div class="p-6 border-b border-gray-200 flex items-center gap-2">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             <h2 class="text-gray-900">Seneste bookinger</h2>
         </div>
 
         <div class="p-6 space-y-4">
-            @foreach (var booking in DataService.Bookinger.OrderByDescending(b => b.Tidspunkt).Take(5))
+            @foreach (var booking in DataService.Bookinger
+                        .OrderByDescending(b => b.Tidspunkt)
+                        .Take(5))
             {
                 var kunde = DataService.Kunder.FirstOrDefault(k => k.KundeId == booking.KundeId);
                 var behandling = DataService.Behandlinger.FirstOrDefault(t => t.BehandlingId == booking.BehandlingId);
                 var medarbejder = DataService.Medarbejdere.FirstOrDefault(m => m.MedarbejderId == booking.MedarbejderId);
 
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div>
                         <p class="text-gray-900">@kunde?.Navn</p>
                         <p class="text-sm text-gray-600">@behandling?.Navn</p>
