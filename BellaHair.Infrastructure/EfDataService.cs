@@ -22,7 +22,12 @@ public class EfDataService : IDataService
         get
         {
             using var db = CreateContext();
-            return db.Bookinger.AsNoTracking().ToList();
+            return db.Bookinger
+                .Include(b => b.Kunde)
+                .Include(b => b.Medarbejder)
+                .Include(b => b.Behandling)
+                .AsNoTracking()
+                .ToList();
         }
     }
 
@@ -109,6 +114,9 @@ public class EfDataService : IDataService
     {
         await using var db = CreateContext();
         return await db.Bookinger
+            .Include(b => b.Kunde)
+            .Include(b => b.Medarbejder)
+            .Include(b => b.Behandling)
             .FirstOrDefaultAsync(b => b.BookingId == bookingId);
     }
 
