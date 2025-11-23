@@ -1,11 +1,10 @@
-﻿@page "/"
-@page "/booking"
+﻿@page "/booking"
+@rendermode InteractiveServer
 @using BellaHair.Domain.Entities
 @using BellaHair.Domain.Services
 @inject BellaHair.Application.Interfaces.IDataService DataService
-
-
-
+@inject BellaHair.Application.Interfaces.IBookingApplicationService BookingAppService
+@inject IJSRuntime JSRuntime
 
 <div class="p-8">
     <div class="flex items-center justify-between mb-8">
@@ -13,7 +12,8 @@
             <h1 class="text-gray-900 mb-2">Bookinger</h1>
             <p class="text-gray-600">Administrer alle bookinger</p>
         </div>
-        <button @onclick="@(() => showNewBookingDialog = true)"
+
+        <button @onclick="NewBooking"
                 class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -24,19 +24,22 @@
 
     <!-- Status Filters -->
     <div class="flex gap-2 mb-6">
-        <button @onclick="@(() => selectedStatus = "all")"
+        <button @onclick="@(() => SetStatusFilter("all"))"
                 class="@GetFilterButtonClass("all")">
             Alle
         </button>
-        <button @onclick="@(() => selectedStatus = "Bekræftet")"
+
+        <button @onclick="@(() => SetStatusFilter("Bekræftet"))"
                 class="@GetFilterButtonClass("Bekræftet")">
             Bekræftet
         </button>
-        <button @onclick="@(() => selectedStatus = "Afventer")"
+
+        <button @onclick="@(() => SetStatusFilter("Afventer"))"
                 class="@GetFilterButtonClass("Afventer")">
             Afventer
         </button>
-        <button @onclick="@(() => selectedStatus = "Gennemført")"
+
+        <button @onclick="@(() => SetStatusFilter("Gennemført"))"
                 class="@GetFilterButtonClass("Gennemført")">
             Gennemført
         </button>
@@ -47,6 +50,7 @@
         <div class="p-6 border-b border-gray-200">
             <h2 class="text-gray-900">@GetStatusTitle()</h2>
         </div>
+
         <div class="p-6">
             <div class="space-y-4">
                 @foreach (var booking in SortedFilteredBookinger)
@@ -63,34 +67,32 @@
                     );
 
                     <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div class="flex-shrink-0">
-                            <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                            </div>
-                        </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-1">
                                 <p class="text-gray-900">@kunde?.Navn</p>
+
                                 @if (!string.IsNullOrEmpty(kunde?.LoyaltyTier))
                                 {
                                     <span class="px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700">
-                                        @kunde.LoyaltyTier
+                                        @kunde!.LoyaltyTier
                                     </span>
                                 }
+
                                 <span class="@GetStatusBadgeClass(booking.Status) px-2 py-0.5 rounded-full text-xs">
                                     @booking.Status.ToString()
                                 </span>
                             </div>
+
                             <p class="text-sm text-gray-600">@behandling?.Navn</p>
                             <p class="text-xs text-gray-500">Medarbejder: @medarbejder?.Navn</p>
                         </div>
+
                         <div class="text-right">
                             <p class="text-gray-900">@booking.Tidspunkt.ToString("ddd dd. MMM yyyy")</p>
                             <p class="text-sm text-gray-600">@booking.Tidspunkt.ToString("HH:mm")</p>
                             <p class="text-sm text-gray-600">@booking.Varighed min</p>
                         </div>
+
                         <div class="text-right min-w-[120px]">
                             <p class="text-gray-900">@Math.Round(discountCalc.FinalPrice) kr</p>
                             @if (discountCalc.AppliedDiscount != null)
@@ -99,18 +101,16 @@
                                 <p class="text-xs text-green-600">@discountCalc.AppliedDiscount.Description</p>
                             }
                         </div>
+
                         <div class="flex gap-2">
                             <button @onclick="@(() => EditBooking(booking.BookingId))"
                                     class="p-2 hover:bg-gray-200 rounded">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
+                                ✏️
                             </button>
+
                             <button @onclick="@(() => deleteBookingId = booking.BookingId)"
-                                    class="p-2 hover:bg-gray-200 rounded">
-                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
+                                    class="p-2 hover:bg-gray-200 rounded text-red-600">
+                                🗑️
                             </button>
                         </div>
                     </div>
@@ -120,19 +120,107 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Dialog -->
+<!-- Create/Edit Booking Dialog -->
+@if (showDialog)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full space-y-3">
+            <h2 class="text-gray-900 mb-2">@((isEditing ? "Rediger booking" : "Ny booking"))</h2>
+
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Kunde</label>
+                <select class="w-full border p-2 rounded" @bind="editModel.KundeId">
+                    @foreach (var k in DataService.Kunder)
+                    {
+                        <option value="@k.KundeId">@k.Navn</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Behandling</label>
+                <select class="w-full border p-2 rounded" @bind="editModel.BehandlingId">
+                    @foreach (var b in DataService.Behandlinger)
+                    {
+                        <option value="@b.BehandlingId">@b.Navn</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Medarbejder</label>
+                <select class="w-full border p-2 rounded" @bind="editModel.MedarbejderId">
+                    @foreach (var m in DataService.Medarbejdere)
+                    {
+                        <option value="@m.MedarbejderId">@m.Navn</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Tidspunkt</label>
+                <input type="datetime-local"
+                       class="w-full border p-2 rounded"
+                       value="@tidspunktInput"
+                       @oninput="OnTidspunktChanged" />
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Varighed (min)</label>
+                <input type="number" class="w-full border p-2 rounded" @bind="editModel.Varighed" />
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Status</label>
+                <select class="w-full border p-2 rounded" @bind="editModel.Status">
+                    @foreach (var s in Enum.GetValues<BookingStatus>())
+                    {
+                        <option value="@s">@s</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Valgt rabat (valgfri)</label>
+                <select class="w-full border p-2 rounded" @bind="editModel.ValgtRabat">
+                    <option value="">Ingen rabat</option>
+                    @foreach (var r in DataService.Rabatter)
+                    {
+                        <option value="@r.RabatId">@r.Description</option>
+                    }
+                </select>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button class="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                        @onclick="CloseDialog">
+                    Annuller
+                </button>
+
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        @onclick="SaveBooking">
+                    Gem
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Delete Confirmation -->
 @if (deleteBookingId.HasValue)
 {
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
             <h2 class="text-gray-900 mb-2">Slet booking?</h2>
-            <p class="text-gray-600 mb-6">Er du sikker på at du vil slette denne booking? Denne handling kan ikke fortrydes.</p>
+            <p class="text-gray-600 mb-6">Er du sikker? Dette kan ikke fortrydes.</p>
+
             <div class="flex justify-end gap-2">
                 <button @onclick="@(() => deleteBookingId = null)"
-                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        class="px-4 py-2 border rounded-lg hover:bg-gray-50">
                     Annuller
                 </button>
-                <button @onclick="DeleteBooking"
+
+                <button @onclick="ConfirmDelete"
                         class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
                     Slet
                 </button>
@@ -142,23 +230,27 @@
 }
 
 @code {
-    private string selectedStatus = "all";
-    private bool showNewBookingDialog = false;
+    private bool showDialog = false;
+    private bool isEditing = false;
+    private Booking editModel = new();
+
+    private string tidspunktInput = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
     private int? deleteBookingId;
+    private string selectedStatus = "all";
 
     private IEnumerable<Booking> SortedFilteredBookinger =>
         DataService.Bookinger
             .Where(b => selectedStatus == "all" || b.Status.ToString() == selectedStatus)
             .OrderBy(b => b.Tidspunkt);
 
+    private void SetStatusFilter(string status) => selectedStatus = status;
+
     private string GetFilterButtonClass(string status)
     {
-        var common = "px-3 py-1 rounded-lg border text-sm ";
-        if (selectedStatus == status)
-        {
-            return common + "bg-blue-600 text-white border-blue-600";
-        }
-        return common + "bg-white text-gray-700 border-gray-300 hover:bg-gray-50";
+        var baseCss = "px-3 py-1 rounded-lg border text-sm ";
+        return selectedStatus == status
+            ? baseCss + "bg-blue-600 text-white border-blue-600"
+            : baseCss + "bg-white text-gray-700 border-gray-300 hover:bg-gray-50";
     }
 
     private string GetStatusBadgeClass(BookingStatus status) =>
@@ -179,17 +271,75 @@
             _ => "Alle bookinger"
         };
 
-    private void EditBooking(int bookingId)
+    private void NewBooking()
     {
-        // TODO: open dialog or navigate to edit page
+        isEditing = false;
+        editModel = new Booking
+        {
+            Varighed = 30,
+            Status = BookingStatus.Afventer
+        };
+
+        tidspunktInput = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+        showDialog = true;
     }
 
-    private async Task DeleteBooking()
+    private void OnTidspunktChanged(ChangeEventArgs e)
+    {
+        tidspunktInput = e.Value?.ToString() ?? DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+    }
+
+    private async Task EditBooking(int id)
+    {
+        var b = await BookingAppService.GetByIdAsync(id);
+        if (b == null) return;
+
+        editModel = new Booking
+        {
+            BookingId = b.BookingId,
+            KundeId = b.KundeId,
+            BehandlingId = b.BehandlingId,
+            MedarbejderId = b.MedarbejderId,
+            Tidspunkt = b.Tidspunkt,
+            Varighed = b.Varighed,
+            Status = b.Status,
+            ValgtRabat = b.ValgtRabat
+        };
+
+        tidspunktInput = b.Tidspunkt.ToString("yyyy-MM-ddTHH:mm");
+
+        isEditing = true;
+        showDialog = true;
+    }
+
+    private async Task SaveBooking()
+    {
+        if (DateTime.TryParse(tidspunktInput, out var parsed))
+            editModel.Tidspunkt = parsed;
+
+        if (isEditing)
+            await BookingAppService.UpdateAsync(editModel);
+        else
+            await BookingAppService.CreateAsync(editModel);
+
+        showDialog = false;
+        StateHasChanged();
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+        editModel = new Booking();
+    }
+
+    private async Task ConfirmDelete()
     {
         if (deleteBookingId.HasValue)
         {
-            await DataService.DeleteBookingAsync(deleteBookingId.Value);
-            deleteBookingId = null;
+            await BookingAppService.DeleteAsync(deleteBookingId.Value);
         }
+
+        deleteBookingId = null;
+        StateHasChanged();
     }
 }

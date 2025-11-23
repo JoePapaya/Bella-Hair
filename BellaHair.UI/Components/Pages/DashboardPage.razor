@@ -1,0 +1,69 @@
+﻿@page "/"
+@using BellaHair.Domain.Entities
+@inject BellaHair.Application.Interfaces.IDataService DataService
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<div class="p-8">
+    <div class="mb-8">
+        <h1 class="text-gray-900 mb-2">Dashboard</h1>
+        <p class="text-gray-600">Velkommen til Salon Booking System</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+        <!-- Total Bookinger -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <p class="text-gray-600 text-sm mb-1">Total Bookinger</p>
+            <p class="text-gray-900">@DataService.Bookinger.Count</p>
+        </div>
+
+        <!-- Aktive Kunder -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <p class="text-gray-600 text-sm mb-1">Aktive kunder</p>
+            <p class="text-gray-900">@DataService.Kunder.Count</p>
+        </div>
+
+        <!-- Tilgængelige behandlinger -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <p class="text-gray-600 text-sm mb-1">Behandlinger</p>
+            <p class="text-gray-900">@DataService.Behandlinger.Count</p>
+        </div>
+
+        <!-- Medarbejdere -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+            <p class="text-gray-600 text-sm mb-1">Medarbejdere</p>
+            <p class="text-gray-900">@DataService.Medarbejdere.Count</p>
+        </div>
+    </div>
+
+    <!-- Seneste bookinger -->
+    <div class="bg-white rounded-lg border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-gray-900">Seneste bookinger</h2>
+        </div>
+
+        <div class="p-6 space-y-4">
+            @foreach (var booking in DataService.Bookinger.OrderByDescending(b => b.Tidspunkt).Take(5))
+            {
+                var kunde = DataService.Kunder.FirstOrDefault(k => k.KundeId == booking.KundeId);
+                var behandling = DataService.Behandlinger.FirstOrDefault(t => t.BehandlingId == booking.BehandlingId);
+                var medarbejder = DataService.Medarbejdere.FirstOrDefault(m => m.MedarbejderId == booking.MedarbejderId);
+
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="text-gray-900">@kunde?.Navn</p>
+                        <p class="text-sm text-gray-600">@behandling?.Navn</p>
+                        <p class="text-xs text-gray-500">Medarbejder: @medarbejder?.Navn</p>
+                    </div>
+
+                    <div class="text-right">
+                        <p class="text-gray-900">@booking.Tidspunkt.ToString("dd/MM/yyyy")</p>
+                        <p class="text-sm text-gray-600">@booking.Tidspunkt.ToString("HH:mm")</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

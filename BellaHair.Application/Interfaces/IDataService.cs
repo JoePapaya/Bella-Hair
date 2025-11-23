@@ -35,5 +35,12 @@ namespace BellaHair.Application.Interfaces
         Task UpdateBehandlingAsync(Behandling behandling);
         Task DeleteBehandlingAsync(int behandlingId);
         Task<Behandling?> GetBehandlingAsync(int behandlingId);
+
+        // ---------- Booking ----------
+        Task<Behandling?> GetBehandlingAsync(string navn);
+        Task<Booking?> GetBookingAsync(int bookingId);
+        Task<Booking> AddBookingAsync(Booking booking);
+        Task UpdateBookingAsync(Booking booking);
+
     }
 }

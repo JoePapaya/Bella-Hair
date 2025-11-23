@@ -104,6 +104,29 @@ public class EfDataService : IDataService
         db.Bookinger.Remove(booking);
         await db.SaveChangesAsync();
     }
+    
+    public async Task<Booking?> GetBookingAsync(int bookingId)
+    {
+        await using var db = CreateContext();
+        return await db.Bookinger
+            .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+    }
+
+    public async Task<Booking> AddBookingAsync(Booking booking)
+    {
+        await using var db = CreateContext();
+        db.Bookinger.Add(booking);
+        await db.SaveChangesAsync();
+        return booking;
+    }
+
+    public async Task UpdateBookingAsync(Booking booking)
+    {
+        await using var db = CreateContext();
+        db.Bookinger.Update(booking);
+        await db.SaveChangesAsync();
+    }
+
 
     // ---------- Kunde ----------
     public async Task AddKundeAsync(Kunde kunde)
@@ -163,5 +186,11 @@ public class EfDataService : IDataService
         await using var db = CreateContext();
         return await db.Behandlinger
             .FirstOrDefaultAsync(b => b.BehandlingId == behandlingId);
+    }
+    public async Task<Behandling?> GetBehandlingAsync(string navn)
+    {
+        await using var db = CreateContext();
+        return await db.Behandlinger
+            .FirstOrDefaultAsync(b => b.Navn == navn);
     }
 }

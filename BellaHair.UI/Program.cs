@@ -1,7 +1,7 @@
 using Bella_Hair.Components;
 using BellaHair.Application.Interfaces;
 using BellaHair.Infrastructure;
-
+using BellaHair.Application.Services;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -15,6 +15,8 @@ builder.Services.AddDbContextFactory<BellaHairDbContext>(options =>
 // IDataService still scoped
 builder.Services.AddScoped<IDataService, EfDataService>();
 
+builder.Services.AddScoped<IBookingApplicationService, BookingApplicationService>();
+builder.Services.AddScoped<IDataService, EfDataService>();
 
 // Blazor / Razor Components
 builder.Services.AddRazorComponents()
