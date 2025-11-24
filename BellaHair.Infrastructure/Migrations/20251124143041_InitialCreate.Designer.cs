@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
-    [Migration("20251120154526_Initial")]
-    partial class Initial
+    [Migration("20251124143041_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,6 +39,10 @@ namespace BellaHair.Infrastructure.Migrations
 
                     b.Property<decimal>("Pris")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("VarighedMinutter")
                         .HasColumnType("int");
@@ -78,6 +82,12 @@ namespace BellaHair.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("BookingId");
+
+                    b.HasIndex("BehandlingId");
+
+                    b.HasIndex("KundeId");
+
+                    b.HasIndex("MedarbejderId");
 
                     b.ToTable("Bookinger");
                 });
@@ -163,11 +173,11 @@ namespace BellaHair.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RabatId"));
 
-                    b.Property<string>("Code")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("Navn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -180,6 +190,33 @@ namespace BellaHair.Infrastructure.Migrations
                     b.HasKey("RabatId");
 
                     b.ToTable("Rabatter");
+                });
+
+            modelBuilder.Entity("BellaHair.Domain.Entities.Booking", b =>
+                {
+                    b.HasOne("BellaHair.Domain.Entities.Behandling", "Behandling")
+                        .WithMany()
+                        .HasForeignKey("BehandlingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BellaHair.Domain.Entities.Kunde", "Kunde")
+                        .WithMany()
+                        .HasForeignKey("KundeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BellaHair.Domain.Entities.Medarbejder", "Medarbejder")
+                        .WithMany()
+                        .HasForeignKey("MedarbejderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Behandling");
+
+                    b.Navigation("Kunde");
+
+                    b.Navigation("Medarbejder");
                 });
 #pragma warning restore 612, 618
         }

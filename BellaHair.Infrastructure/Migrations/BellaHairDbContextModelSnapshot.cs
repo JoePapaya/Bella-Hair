@@ -80,6 +80,12 @@ namespace BellaHair.Infrastructure.Migrations
 
                     b.HasKey("BookingId");
 
+                    b.HasIndex("BehandlingId");
+
+                    b.HasIndex("KundeId");
+
+                    b.HasIndex("MedarbejderId");
+
                     b.ToTable("Bookinger");
                 });
 
@@ -164,11 +170,11 @@ namespace BellaHair.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RabatId"));
 
-                    b.Property<string>("Code")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("Navn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -181,6 +187,33 @@ namespace BellaHair.Infrastructure.Migrations
                     b.HasKey("RabatId");
 
                     b.ToTable("Rabatter");
+                });
+
+            modelBuilder.Entity("BellaHair.Domain.Entities.Booking", b =>
+                {
+                    b.HasOne("BellaHair.Domain.Entities.Behandling", "Behandling")
+                        .WithMany()
+                        .HasForeignKey("BehandlingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BellaHair.Domain.Entities.Kunde", "Kunde")
+                        .WithMany()
+                        .HasForeignKey("KundeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BellaHair.Domain.Entities.Medarbejder", "Medarbejder")
+                        .WithMany()
+                        .HasForeignKey("MedarbejderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Behandling");
+
+                    b.Navigation("Kunde");
+
+                    b.Navigation("Medarbejder");
                 });
 #pragma warning restore 612, 618
         }
