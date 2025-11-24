@@ -32,7 +32,7 @@ namespace BellaHair.Domain.Services
             {
                 // Only the chosen discount (if any)
                 if (!string.IsNullOrEmpty(valgtRabatCode) &&
-                    !string.Equals(rabat.Code, valgtRabatCode, StringComparison.OrdinalIgnoreCase))
+                    !string.Equals(rabat.Navn, valgtRabatCode, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }

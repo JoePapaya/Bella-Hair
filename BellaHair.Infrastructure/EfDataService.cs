@@ -193,4 +193,41 @@ public class EfDataService : IDataService
         return await db.Behandlinger
             .FirstOrDefaultAsync(b => b.Navn == navn);
     }
+
+    // ---------- Rabat ----------
+
+    public async Task<Rabat> AddRabatAsync(Rabat rabat)
+    {
+        using var db = CreateContext();
+        db.Rabatter.Add(rabat);
+        await db.SaveChangesAsync();
+        return rabat;
+    }
+
+    public async Task<Rabat> UpdateRabatAsync(Rabat rabat)
+    {
+        using var db = CreateContext();
+        db.Rabatter.Update(rabat);
+        await db.SaveChangesAsync();
+        return rabat;
+    }
+
+    public async Task DeleteRabatAsync(int id)
+    {
+        using var db = CreateContext();
+        var entity = await db.Rabatter.FirstOrDefaultAsync(r => r.RabatId == id);
+        if (entity is null) return;
+
+        db.Rabatter.Remove(entity);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task<Rabat?> GetRabatAsync(int id)
+    {
+        using var db = CreateContext();
+        return await db.Rabatter.AsNoTracking()
+            .FirstOrDefaultAsync(r => r.RabatId == id);
+    }
+
+
 }
