@@ -4,6 +4,7 @@
 @using BellaHair.Domain.Services
 @inject BellaHair.Application.Interfaces.IDataService DataService
 @inject BellaHair.Application.Interfaces.IBookingApplicationService BookingAppService
+@inject BellaHair.Application.Interfaces.IRabatService RabatService
 @inject IJSRuntime JSRuntime
 
 <div class="p-8">
@@ -59,12 +60,13 @@
                     var behandling = DataService.Behandlinger.FirstOrDefault(t => t.BehandlingId == booking.BehandlingId);
                     var medarbejder = DataService.Medarbejdere.FirstOrDefault(m => m.MedarbejderId == booking.MedarbejderId);
 
-                    var discountCalc = DiscountCalc.CalculateBestDiscount(
+                    // Brug RabatService til at beregne bedste rabat
+                    var discountCalc = RabatService.BeregnBedsteRabat(
                     behandling?.Pris ?? 0,
                     kunde,
-                    booking.ValgtRabat,
-                    DataService.Rabatter
+                    null // altid automatisk bedste rabat
                     );
+
 
                     <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                         <div class="flex-1 min-w-0">
@@ -93,12 +95,18 @@
                             <p class="text-sm text-gray-600">@booking.Varighed min</p>
                         </div>
 
-                        <div class="text-right min-w-[120px]">
+                        <div class="text-right min-w-[140px]">
                             <p class="text-gray-900">@Math.Round(discountCalc.FinalPrice) kr</p>
                             @if (discountCalc.AppliedDiscount != null)
                             {
                                 <p class="text-xs text-gray-400 line-through">@discountCalc.OriginalPrice kr</p>
-                                <p class="text-xs text-green-600">@discountCalc.AppliedDiscount.Description</p>
+                                <p class="text-xs text-green-600">
+                                    @discountCalc.AppliedDiscount.Navn
+                                    @if (!string.IsNullOrWhiteSpace(discountCalc.AppliedDiscount.Code))
+                                    {
+                                        <span>(@discountCalc.AppliedDiscount.Code)</span>
+                                    }
+                                </p>
                             }
                         </div>
 
@@ -157,13 +165,24 @@
                 </select>
             </div>
 
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">Tidspunkt</label>
-                <input type="datetime-local"
-                       class="w-full border p-2 rounded"
-                       value="@tidspunktInput"
-                       @oninput="OnTidspunktChanged" />
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Dato</label>
+                    <input type="date"
+                           class="w-full border p-2 rounded"
+                           value="@datoInput"
+                           @onchange="OnDateChanged" />
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Tid</label>
+                    <input type="time"
+                           class="w-full border p-2 rounded"
+                           value="@tidInput"
+                           @onchange="OnTimeChanged" />
+                </div>
             </div>
+
+
 
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Varighed (min)</label>
@@ -180,16 +199,7 @@
                 </select>
             </div>
 
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">Valgt rabat (valgfri)</label>
-                <select class="w-full border p-2 rounded" @bind="editModel.ValgtRabat">
-                    <option value="">Ingen rabat</option>
-                    @foreach (var r in DataService.Rabatter)
-                    {
-                        <option value="@r.RabatId">@r.Description</option>
-                    }
-                </select>
-            </div>
+            
 
             <div class="flex justify-end gap-2 pt-2">
                 <button class="px-4 py-2 border rounded-lg hover:bg-gray-50"
@@ -234,9 +244,24 @@
     private bool isEditing = false;
     private Booking editModel = new();
 
-    private string tidspunktInput = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+    private string datoInput = DateTime.Now.ToString("yyyy-MM-dd");
+    private string tidInput = DateTime.Now.ToString("HH:mm");
+
     private int? deleteBookingId;
     private string selectedStatus = "all";
+    private string? errorMessage;
+
+    private void OnDateChanged(ChangeEventArgs e)
+    {
+        datoInput = e.Value?.ToString() ?? DateTime.Now.ToString("yyyy-MM-dd");
+    }
+
+    private void OnTimeChanged(ChangeEventArgs e)
+    {
+        tidInput = e.Value?.ToString() ?? DateTime.Now.ToString("HH:mm");
+    }
+
+
 
     private IEnumerable<Booking> SortedFilteredBookinger =>
         DataService.Bookinger
@@ -280,14 +305,13 @@
             Status = BookingStatus.Afventer
         };
 
-        tidspunktInput = DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+        datoInput = DateTime.Now.ToString("yyyy-MM-dd");
+        tidInput = DateTime.Now.ToString("HH:mm");
+
         showDialog = true;
     }
 
-    private void OnTidspunktChanged(ChangeEventArgs e)
-    {
-        tidspunktInput = e.Value?.ToString() ?? DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
-    }
+    
 
     private async Task EditBooking(int id)
     {
@@ -306,19 +330,24 @@
             ValgtRabat = b.ValgtRabat
         };
 
-        tidspunktInput = b.Tidspunkt.ToString("yyyy-MM-ddTHH:mm");
+        datoInput = b.Tidspunkt.ToString("yyyy-MM-dd");
+        tidInput = b.Tidspunkt.ToString("HH:mm");
+
 
         isEditing = true;
         showDialog = true;
     }
-    private string? errorMessage;
 
     private async Task SaveBooking()
     {
         errorMessage = null; // reset
 
-        if (DateTime.TryParse(tidspunktInput, out var parsed))
+        if (DateTime.TryParse($"{datoInput} {tidInput}", out var parsed))
+        {
             editModel.Tidspunkt = parsed;
+        }
+
+
 
         try
         {
@@ -336,7 +365,6 @@
             await JSRuntime.InvokeVoidAsync("alert", errorMessage);
         }
     }
-
 
     private void CloseDialog()
     {

@@ -4,6 +4,7 @@ using BellaHair.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
-    partial class BellaHairDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251125143953_AddCampaignFieldsToRabat")]
+    partial class AddCampaignFieldsToRabat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -170,41 +173,19 @@ namespace BellaHair.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RabatId"));
 
-                    b.Property<bool>("Aktiv")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Code")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("FixedAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("IsKampagne")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal?>("MinimumBeløb")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Navn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("Percentage")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<decimal>("Percentage")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("RequiredLoyaltyTier")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("SlutDato")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("StartDato")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("RabatId");
 
