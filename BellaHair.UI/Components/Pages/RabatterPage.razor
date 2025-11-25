@@ -45,13 +45,13 @@
                 @foreach (var rabat in StamkundeRabatter)
                 {
                     var active = IsActive(rabat);
-                    var tier = rabat.RequiredLoyaltyTier ?? GetLoyaltyTier(rabat.Percentage);
+                    var tier = rabat.RequiredLoyaltyTier ?? GetLoyaltyTier(rabat.Percentage ?? 0);
 
                     <div class="bg-white rounded-lg border @(active ? "border-green-300" : "border-gray-200") hover:shadow-lg transition-shadow">
                         <div class="p-6">
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="@GetLoyaltyColor(rabat.Percentage) w-12 h-12 rounded-lg flex items-center justify-center">
+                                    <div class="@GetLoyaltyColor(rabat.Percentage ?? 0) w-12 h-12 rounded-lg flex items-center justify-center">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                   d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
@@ -60,7 +60,11 @@
                                     </div>
                                     <div>
                                         <h3 class="text-gray-900 font-medium">@tier</h3>
-                                        <p class="text-sm text-gray-600">@AsPercent(rabat.Percentage) rabat</p>
+                                        <p class="text-sm text-gray-600">@GetRabatLabel(rabat)</p>
+                                        @if (!string.IsNullOrWhiteSpace(rabat.Code))
+                                        {
+                                            <p class="text-xs text-gray-500">Kode: @rabat.Code</p>
+                                        }
                                     </div>
                                 </div>
                                 <span class="@(active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700") px-2 py-1 text-xs rounded">
@@ -70,6 +74,12 @@
 
                             <div class="space-y-3">
                                 <p class="text-sm text-gray-600">@rabat.Description</p>
+
+                                @if (rabat.MinimumBeløb.HasValue)
+                                {
+                                    <p class="text-xs text-gray-500">Gælder fra @rabat.MinimumBeløb.Value.ToString("0.00") kr</p>
+                                }
+
                                 <div class="pt-4 border-t border-gray-100 space-y-2">
                                     <button class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                                             @onclick="() => Edit(rabat)">
@@ -111,8 +121,13 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 class="text-gray-900 font-medium">@AsPercent(rabat.Percentage)</h3>
+                                        <h3 class="text-gray-900 font-medium">@GetRabatLabel(rabat)</h3>
+
                                         <p class="text-xs text-gray-500">@rabat.Navn</p>
+                                        @if (!string.IsNullOrWhiteSpace(rabat.Code))
+                                        {
+                                            <p class="text-xs text-gray-500">Kode: @rabat.Code</p>
+                                        }
                                     </div>
                                 </div>
 
@@ -123,6 +138,32 @@
 
                             <div class="space-y-3">
                                 <p class="text-sm text-gray-600">@rabat.Description</p>
+
+                                <p class="text-xs text-gray-500">
+                                    Periode:
+                                    @if (rabat.StartDato.HasValue)
+                                    {
+                                        @rabat.StartDato.Value.ToString("dd-MM-yyyy")
+                                    }
+                                    else
+                                    {
+                                        @("Ingen startdato")
+                                    }
+                                    –
+                                    @if (rabat.SlutDato.HasValue)
+                                    {
+                                        @rabat.SlutDato.Value.ToString("dd-MM-yyyy")
+                                    }
+                                    else
+                                    {
+                                        @("Ingen slutdato")
+                                    }
+                                </p>
+
+                                @if (rabat.MinimumBeløb.HasValue)
+                                {
+                                    <p class="text-xs text-gray-500">Gælder fra @rabat.MinimumBeløb.Value.ToString("0.00") kr</p>
+                                }
 
                                 <div class="pt-4 border-t border-gray-100 space-y-2">
                                     <button class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
@@ -172,6 +213,11 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm text-gray-600 mb-1">Rabatkode (valgfri)</label>
+                        <input class="w-full border p-2 rounded" @bind="current.Code" />
+                    </div>
+
+                    <div>
                         <label class="block text-sm text-gray-600 mb-1">Procent (0-100)</label>
                         <input type="number" min="0" max="100" step="0.1"
                                class="w-full border p-2 rounded"
@@ -182,16 +228,61 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm text-gray-600 mb-1">Fast beløb (kr, valgfri)</label>
+                        <input type="number" step="0.01"
+                               class="w-full border p-2 rounded"
+                               @bind="current.FixedAmount" />
+                        <p class="text-xs text-gray-500 mt-1">
+                            Hvis både procent og fast beløb er sat, bruges procent først.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Minimum beløb (valgfri)</label>
+                        <input type="number" step="0.01" class="w-full border p-2 rounded"
+                               @bind="current.MinimumBeløb" />
+                    </div>
+
+                    <div>
                         <label class="block text-sm text-gray-600 mb-1">Krævet loyalitet (stamkunde)</label>
                         <select class="w-full border p-2 rounded"
                                 @bind="current.RequiredLoyaltyTier">
-                            <option value="">Ingen (kampagne)</option>
+                            <option value="">Ingen</option>
                             <option>Bronze</option>
                             <option>Sølv</option>
                             <option>Guld</option>
                             <option>VIP</option>
                         </select>
                     </div>
+
+                    <div class="flex items-center gap-4">
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" class="rounded" @bind="current.Aktiv" />
+                            <span>Aktiv</span>
+                        </label>
+
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" class="rounded" @bind="current.IsKampagne" />
+                            <span>Kampagnerabat</span>
+                        </label>
+                    </div>
+
+                    @if (current.IsKampagne)
+                    {
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1">Startdato</label>
+                                <input type="date" class="w-full border p-2 rounded"
+                                       @bind="current.StartDato" />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1">Slutdato</label>
+                                <input type="date" class="w-full border p-2 rounded"
+                                       @bind="current.SlutDato" />
+                            </div>
+                        </div>
+                    }
                 </div>
 
                 <div class="flex justify-end gap-2 mt-6">
@@ -238,11 +329,13 @@
 
     private List<Rabat> rabatter = new();
 
+    // Stamkunde = har loyalitet og er ikke kampagne
     private IEnumerable<Rabat> StamkundeRabatter =>
-        rabatter.Where(r => !string.IsNullOrWhiteSpace(r.RequiredLoyaltyTier));
+        rabatter.Where(r => !r.IsKampagne && !string.IsNullOrWhiteSpace(r.RequiredLoyaltyTier));
 
+    // Kampagne = IsKampagne == true
     private IEnumerable<Rabat> KampagneRabatter =>
-        rabatter.Where(r => string.IsNullOrWhiteSpace(r.RequiredLoyaltyTier));
+        rabatter.Where(r => r.IsKampagne);
 
     private bool showDialog;
     private bool isEdit;
@@ -263,14 +356,33 @@
         rabatter = DataService.Rabatter.ToList();
     }
 
-    // Filter handlers (ingen quotes i attributes!)
+    // Filter handlers
     private void ShowAll() => selectedKategori = "all";
     private void ShowStamkunde() => selectedKategori = "Stamkunde";
     private void ShowKampagne() => selectedKategori = "Kampagne";
 
-    private bool IsActive(Rabat rabat) => rabat.Percentage > 0;
+    private bool IsActive(Rabat rabat)
+    {
+        if (!rabat.Aktiv)
+            return false;
 
-    private string AsPercent(decimal pct) => $"{pct * 100:0.#}%";
+        if (rabat.IsKampagne)
+        {
+            var today = DateTime.Today;
+            if (rabat.StartDato.HasValue && today < rabat.StartDato.Value.Date)
+                return false;
+            if (rabat.SlutDato.HasValue && today > rabat.SlutDato.Value.Date)
+                return false;
+        }
+
+        return true;
+    }
+
+    private string AsPercent(decimal? pct)
+    {
+        var value = (pct ?? 0) * 100;
+        return $"{value:0.#}%";
+    }
 
     private string GetFilterButtonClass(string kategori)
     {
@@ -301,7 +413,11 @@
     private void NewRabat()
     {
         isEdit = false;
-        current = new Rabat();
+        current = new Rabat
+        {
+            Aktiv = true,
+            IsKampagne = false
+        };
         percentageInput = 0;
         showDialog = true;
     }
@@ -315,10 +431,17 @@
             Navn = r.Navn,
             Description = r.Description,
             Percentage = r.Percentage,
-            RequiredLoyaltyTier = r.RequiredLoyaltyTier
+            RequiredLoyaltyTier = r.RequiredLoyaltyTier,
+            Code = r.Code,
+            MinimumBeløb = r.MinimumBeløb,
+            FixedAmount = r.FixedAmount,
+            IsKampagne = r.IsKampagne,
+            StartDato = r.StartDato,
+            SlutDato = r.SlutDato,
+            Aktiv = r.Aktiv
         };
 
-        percentageInput = r.Percentage * 100;
+        percentageInput = (r.Percentage ?? 0) * 100;
         showDialog = true;
     }
 
@@ -331,7 +454,15 @@
 
     private async Task Save()
     {
-        current.Percentage = percentageInput / 100;
+        if (percentageInput > 0)
+        {
+            current.Percentage = percentageInput / 100;
+        }
+        else
+        {
+            current.Percentage = null;
+        }
+
 
         if (string.IsNullOrWhiteSpace(current.Navn))
             return;
@@ -366,4 +497,28 @@
         toDelete = null;
         Load();
     }
+    private string GetRabatLabel(Rabat rabat)
+    {
+        var hasPct = rabat.Percentage.HasValue && rabat.Percentage.Value > 0;
+        var hasFixed = rabat.FixedAmount.HasValue && rabat.FixedAmount.Value > 0;
+
+        if (hasPct && hasFixed)
+        {
+            // fx "10% / 100 kr"
+            return $"{AsPercent(rabat.Percentage)} / {rabat.FixedAmount.Value:0.##} kr";
+        }
+
+        if (hasPct)
+        {
+            return AsPercent(rabat.Percentage);
+        }
+
+        if (hasFixed)
+        {
+            return $"{rabat.FixedAmount.Value:0.##} kr";
+        }
+
+        return "Ingen rabat";
+    }
+
 }
