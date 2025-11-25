@@ -12,8 +12,13 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
+<<<<<<<< HEAD:BellaHair.Infrastructure/Migrations/20251125144557_AddDescriptionToRabat.Designer.cs
+    [Migration("20251125144557_AddDescriptionToRabat")]
+    partial class AddDescriptionToRabat
+========
     [Migration("20251125160838_AddDecimalPrecision")]
     partial class AddDecimalPrecision
+>>>>>>>> 488f8c93bec85797faa31ae47aa414fbab8a85f5:BellaHair.Infrastructure/Migrations/20251125160838_AddDecimalPrecision.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -224,19 +229,46 @@ namespace BellaHair.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RabatId"));
 
+<<<<<<<< HEAD:BellaHair.Infrastructure/Migrations/20251125144557_AddDescriptionToRabat.Designer.cs
+                    b.Property<bool>("Aktiv")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Code")
+========
                     b.Property<string>("Description")
                         .IsRequired()
+>>>>>>>> 488f8c93bec85797faa31ae47aa414fbab8a85f5:BellaHair.Infrastructure/Migrations/20251125160838_AddDecimalPrecision.Designer.cs
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Navn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Percentage")
+                    b.Property<decimal?>("FixedAmount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsKampagne")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("MinimumBeløb")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Navn")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Percentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<string>("RequiredLoyaltyTier")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("SlutDato")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("StartDato")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("RabatId");
 
@@ -269,6 +301,8 @@ namespace BellaHair.Infrastructure.Migrations
 
                     b.Navigation("Medarbejder");
                 });
+<<<<<<<< HEAD:BellaHair.Infrastructure/Migrations/20251125144557_AddDescriptionToRabat.Designer.cs
+========
 
             modelBuilder.Entity("BellaHair.Domain.Entities.Faktura", b =>
                 {
@@ -288,6 +322,7 @@ namespace BellaHair.Infrastructure.Migrations
 
                     b.Navigation("Kunde");
                 });
+>>>>>>>> 488f8c93bec85797faa31ae47aa414fbab8a85f5:BellaHair.Infrastructure/Migrations/20251125160838_AddDecimalPrecision.Designer.cs
 #pragma warning restore 612, 618
         }
     }

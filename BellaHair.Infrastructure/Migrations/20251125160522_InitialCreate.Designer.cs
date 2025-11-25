@@ -12,8 +12,13 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
+<<<<<<<< HEAD:BellaHair.Infrastructure/Migrations/20251125143953_AddCampaignFieldsToRabat.Designer.cs
+    [Migration("20251125143953_AddCampaignFieldsToRabat")]
+    partial class AddCampaignFieldsToRabat
+========
     [Migration("20251125160522_InitialCreate")]
     partial class InitialCreate
+>>>>>>>> 488f8c93bec85797faa31ae47aa414fbab8a85f5:BellaHair.Infrastructure/Migrations/20251125160522_InitialCreate.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -269,6 +274,8 @@ namespace BellaHair.Infrastructure.Migrations
 
                     b.Navigation("Medarbejder");
                 });
+<<<<<<<< HEAD:BellaHair.Infrastructure/Migrations/20251125143953_AddCampaignFieldsToRabat.Designer.cs
+========
 
             modelBuilder.Entity("BellaHair.Domain.Entities.Faktura", b =>
                 {
@@ -288,6 +295,7 @@ namespace BellaHair.Infrastructure.Migrations
 
                     b.Navigation("Kunde");
                 });
+>>>>>>>> 488f8c93bec85797faa31ae47aa414fbab8a85f5:BellaHair.Infrastructure/Migrations/20251125160522_InitialCreate.Designer.cs
 #pragma warning restore 612, 618
         }
     }
