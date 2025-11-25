@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace BellaHair.Infrastructure;
 
-public class BellaHairDbContext2 : DbContext
+public class BellaHairDbContext : DbContext
 {
-    public BellaHairDbContext2(DbContextOptions<BellaHairDbContext2> options)
+    public BellaHairDbContext(DbContextOptions<BellaHairDbContext> options)
         : base(options)
     {
     }
