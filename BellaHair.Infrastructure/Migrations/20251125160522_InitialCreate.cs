@@ -117,6 +117,40 @@ namespace BellaHair.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Fakturaer",
+                columns: table => new
+                {
+                    FakturaId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    KundeId = table.Column<int>(type: "int", nullable: false),
+                    BookingId = table.Column<int>(type: "int", nullable: false),
+                    ErFirmafaktura = table.Column<bool>(type: "bit", nullable: false),
+                    Firmanavn = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Cvr = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FakturaDato = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Beløb = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    RabatBeløb = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    TotalBeløb = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    RabatTekst = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Fakturaer", x => x.FakturaId);
+                    table.ForeignKey(
+                        name: "FK_Fakturaer_Bookinger_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookinger",
+                        principalColumn: "BookingId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Fakturaer_Kunder_KundeId",
+                        column: x => x.KundeId,
+                        principalTable: "Kunder",
+                        principalColumn: "KundeId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Bookinger_BehandlingId",
                 table: "Bookinger",
@@ -131,16 +165,29 @@ namespace BellaHair.Infrastructure.Migrations
                 name: "IX_Bookinger_MedarbejderId",
                 table: "Bookinger",
                 column: "MedarbejderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Fakturaer_BookingId",
+                table: "Fakturaer",
+                column: "BookingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Fakturaer_KundeId",
+                table: "Fakturaer",
+                column: "KundeId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Bookinger");
+                name: "Fakturaer");
 
             migrationBuilder.DropTable(
                 name: "Rabatter");
+
+            migrationBuilder.DropTable(
+                name: "Bookinger");
 
             migrationBuilder.DropTable(
                 name: "Behandlinger");

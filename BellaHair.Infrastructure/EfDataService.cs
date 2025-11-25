@@ -67,6 +67,18 @@ public class EfDataService : IDataService
         }
     }
 
+    public IList<Faktura> Fakturaer
+    {
+        get
+        {
+            using var db = CreateContext();
+            return db.Fakturaer
+                     .AsNoTracking()
+                     .ToList();
+        }
+    }
+
+
     // ---------- Medarbejder ----------
     public async Task AddMedarbejderAsync(Medarbejder medarbejder)
     {
@@ -235,6 +247,48 @@ public class EfDataService : IDataService
         using var db = CreateContext();
         return await db.Rabatter.AsNoTracking()
             .FirstOrDefaultAsync(r => r.RabatId == id);
+    }
+
+
+    // ---------- Faktura ----------
+
+    public async Task<Faktura> CreateFakturaAsync (Booking booking)
+    {
+        using var db = CreateContext();
+
+        // Sørg for at vi har den nyeste booking fra databasen (med BookingId)
+        var dbBooking = await db.Bookinger.FindAsync(booking.BookingId);
+        if (dbBooking == null)
+            throw new InvalidOperationException($"Booking med id {booking.BookingId} blev ikke fundet.");
+
+        // Find behandling for at få pris
+        var behandling = await db.Behandlinger.FindAsync(dbBooking.BehandlingId);
+        var grundBeløb = behandling?.Pris ?? 0m;
+
+        // SIMPEL version: ingen rabat-logik endnu (kan vi bygge senere)
+        decimal rabatBeløb = 0m;
+        string? rabatTekst = null;
+
+        var faktura = new Faktura
+        {
+            KundeId = dbBooking.KundeId,
+            BookingId = dbBooking.BookingId,
+            FakturaDato = dbBooking.Tidspunkt,
+
+            Beløb = grundBeløb,
+            RabatBeløb = rabatBeløb,
+            TotalBeløb = grundBeløb - rabatBeløb,
+
+            RabatTekst = rabatTekst,
+            ErFirmafaktura = false,
+            Firmanavn = null,
+            Cvr = null
+        };
+
+        db.Fakturaer.Add(faktura);
+        await db.SaveChangesAsync();
+
+        return faktura;
     }
 
 

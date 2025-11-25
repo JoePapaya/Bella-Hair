@@ -21,9 +21,16 @@ public class LoyalitetsServiceTest
         public IList<Medarbejder> Medarbejdere => new List<Medarbejder>();
         public IList<Rabat> Rabatter => new List<Rabat>();
 
+        // NY: simpel in-memory liste til fakturaer (brugt ikke i denne test, men kræves af interface)
+        public IList<Faktura> Fakturaer { get; } = new List<Faktura>();
+
         public Task DeleteBookingAsync(int bookingId) => Task.CompletedTask;
         public Task<Booking?> GetBookingAsync(int bookingId) => Task.FromResult<Booking?>(null);
-        public Task<Booking> AddBookingAsync(Booking booking) => Task.FromResult(booking);
+        public Task<Booking> AddBookingAsync(Booking booking)
+        {
+            Bookinger.Add(booking);
+            return Task.FromResult(booking);
+        }
         public Task UpdateBookingAsync(Booking booking) => Task.CompletedTask;
 
         public Task AddMedarbejderAsync(Medarbejder medarbejder) => Task.CompletedTask;
@@ -46,7 +53,25 @@ public class LoyalitetsServiceTest
         public Task<Rabat> UpdateRabatAsync(Rabat rabat) => Task.FromResult(rabat);
         public Task DeleteRabatAsync(int id) => Task.CompletedTask;
         public Task<Rabat?> GetRabatAsync(int id) => Task.FromResult<Rabat?>(null);
+
+        // NY: stub til faktura-oprettelse (din loyalty-test er ligeglad, så vi kan holde den simpel)
+        public Task<Faktura> CreateFakturaAsync(Booking booking)
+        {
+            var faktura = new Faktura
+            {
+                BookingId = booking.BookingId,
+                KundeId = booking.KundeId,
+                FakturaDato = booking.Tidspunkt,
+                Beløb = 0m,
+                RabatBeløb = 0m,
+                TotalBeløb = 0m
+            };
+
+            Fakturaer.Add(faktura);
+            return Task.FromResult(faktura);
+        }
     }
+
 
     [Test]
     public void BeregnLoyalitet_GiverBronzeVed5Gennemførte()
