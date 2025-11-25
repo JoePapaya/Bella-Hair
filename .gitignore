@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/BellaHair.Infrastructure/BellaHairDbContext.cs
+/BellaHair.Infrastructure/Migrations/BellaHairDbContextModelSnapshot.cs
+/BellaHair.Infrastructure/Migrations/20251125144557_AddDescriptionToRabat.Designer.cs
+/BellaHair.Infrastructure/Migrations/20251125143953_AddCampaignFieldsToRabat.Designer.cs
