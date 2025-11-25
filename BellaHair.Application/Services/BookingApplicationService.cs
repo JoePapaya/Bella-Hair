@@ -22,8 +22,16 @@ public class BookingApplicationService : IBookingApplicationService
 
     public async Task<Booking> CreateAsync(Booking booking)
     {
+        // 1) Kun HER validerer vi booking
         await _validator.ValidateAsync(booking);
-        return await _data.AddBookingAsync(booking);
+
+        // 2) Gem booking
+        var savedBooking = await _data.AddBookingAsync(booking);
+
+        // 3) Lav faktura (ingen ekstra validation her)
+        await _data.CreateFakturaAsync(savedBooking);
+
+        return savedBooking;
     }
 
     public async Task UpdateAsync(Booking booking)
@@ -34,4 +42,6 @@ public class BookingApplicationService : IBookingApplicationService
 
     public Task DeleteAsync(int id)
         => _data.DeleteBookingAsync(id);
+
+
 }

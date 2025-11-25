@@ -14,4 +14,3 @@ public class Behandling
     public int VarighedMinutter { get; set; }
     public string Type { get; set; } = string.Empty;
 }
-

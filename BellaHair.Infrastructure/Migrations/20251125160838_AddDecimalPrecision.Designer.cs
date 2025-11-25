@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
-    [Migration("20251121143900_AddBehandling")]
-    partial class AddBehandling
+    [Migration("20251125160838_AddDecimalPrecision")]
+    partial class AddDecimalPrecision
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -83,7 +83,64 @@ namespace BellaHair.Infrastructure.Migrations
 
                     b.HasKey("BookingId");
 
+                    b.HasIndex("BehandlingId");
+
+                    b.HasIndex("KundeId");
+
+                    b.HasIndex("MedarbejderId");
+
                     b.ToTable("Bookinger");
+                });
+
+            modelBuilder.Entity("BellaHair.Domain.Entities.Faktura", b =>
+                {
+                    b.Property<int>("FakturaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FakturaId"));
+
+                    b.Property<decimal>("Beløb")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Cvr")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ErFirmafaktura")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("FakturaDato")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Firmanavn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("KundeId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("RabatBeløb")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RabatTekst")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("TotalBeløb")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("FakturaId");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("KundeId");
+
+                    b.ToTable("Fakturaer");
                 });
 
             modelBuilder.Entity("BellaHair.Domain.Entities.Kunde", b =>
@@ -167,11 +224,11 @@ namespace BellaHair.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RabatId"));
 
-                    b.Property<string>("Code")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("Navn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -184,6 +241,52 @@ namespace BellaHair.Infrastructure.Migrations
                     b.HasKey("RabatId");
 
                     b.ToTable("Rabatter");
+                });
+
+            modelBuilder.Entity("BellaHair.Domain.Entities.Booking", b =>
+                {
+                    b.HasOne("BellaHair.Domain.Entities.Behandling", "Behandling")
+                        .WithMany()
+                        .HasForeignKey("BehandlingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BellaHair.Domain.Entities.Kunde", "Kunde")
+                        .WithMany()
+                        .HasForeignKey("KundeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BellaHair.Domain.Entities.Medarbejder", "Medarbejder")
+                        .WithMany()
+                        .HasForeignKey("MedarbejderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Behandling");
+
+                    b.Navigation("Kunde");
+
+                    b.Navigation("Medarbejder");
+                });
+
+            modelBuilder.Entity("BellaHair.Domain.Entities.Faktura", b =>
+                {
+                    b.HasOne("BellaHair.Domain.Entities.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BellaHair.Domain.Entities.Kunde", "Kunde")
+                        .WithMany()
+                        .HasForeignKey("KundeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("Kunde");
                 });
 #pragma warning restore 612, 618
         }

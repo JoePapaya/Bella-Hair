@@ -16,31 +16,54 @@ public class BellaHairDbContext : DbContext
     public DbSet<Behandling> Behandlinger => Set<Behandling>();
     public DbSet<Booking> Bookinger => Set<Booking>();
     public DbSet<Rabat> Rabatter => Set<Rabat>();
-
+    public DbSet<Faktura> Fakturaer { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Behandling.Pris
-        modelBuilder.Entity<Behandling>()
-            .Property(b => b.Pris)
-            .HasColumnType("decimal(18,2)");
+        // ---------- Behandling ----------
+        modelBuilder.Entity<Behandling>(entity =>
+        {
+            entity.Property(b => b.Pris)
+                  .HasPrecision(18, 2);   // 18 total cifre, 2 decimaler (fx 1234567890123,45)
+        });
 
-        // Rabat.Percentage
-        modelBuilder.Entity<Rabat>()
-            .Property(r => r.Percentage)
-            .HasPrecision(5, 2); // 0–100.00
+        // ---------- Rabat ----------
+        modelBuilder.Entity<Rabat>(entity =>
+        {
+            entity.Property(r => r.Percentage)
+                  .HasPrecision(5, 2);    // fx 100,00 eller 12,50 %
 
-        // Rabat.FixedAmount
-        modelBuilder.Entity<Rabat>()
-            .Property(r => r.FixedAmount)
-            .HasColumnType("decimal(18,2)");
+            // hvis Rabat også har et beløbsfelt:
+            // entity.Property(r => r.Beløb).HasPrecision(18, 2);
+        });
 
-        // Rabat.MinimumBeløb
-        modelBuilder.Entity<Rabat>()
-            .Property(r => r.MinimumBeløb)
-            .HasColumnType("decimal(18,2)");
+        // ---------- Faktura ----------
+        modelBuilder.Entity<Faktura>(entity =>
+        {
+            entity.Property(f => f.Beløb)
+                  .HasPrecision(18, 2);
+
+            entity.Property(f => f.RabatBeløb)
+                  .HasPrecision(18, 2);
+
+            entity.Property(f => f.TotalBeløb)
+                  .HasPrecision(18, 2);
+
+            entity.Property(f => f.RabatTekst)
+                  .HasMaxLength(200);
+
+            entity.HasOne(f => f.Kunde)
+                  .WithMany()
+                  .HasForeignKey(f => f.KundeId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(f => f.Booking)
+                  .WithMany()
+                  .HasForeignKey(f => f.BookingId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
     }
-}
 
+}

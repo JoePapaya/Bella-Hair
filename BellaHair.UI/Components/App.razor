@@ -15,9 +15,16 @@
     <HeadOutlet />
 </head>
 <body>
-    <!-- ✅ global interaktiv routing -->
-    <Routes @rendermode="InteractiveServer" />
+
+    <!-- Wrap hele appen i en container -->
+    <div id="app-root" class="app-root">
+        <!-- Global interactive routing -->
+        <Routes @rendermode="InteractiveServer" />
+    </div>
 
     <script src="_framework/blazor.web.js"></script>
+    <script src="print.js"></script>
+
 </body>
+
 </html>

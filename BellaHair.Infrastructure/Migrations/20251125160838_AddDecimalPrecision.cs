@@ -5,25 +5,18 @@
 namespace BellaHair.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddBehandling : Migration
+    public partial class AddDecimalPrecision : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "Type",
-                table: "Behandlinger",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Type",
-                table: "Behandlinger");
+
         }
     }
 }
