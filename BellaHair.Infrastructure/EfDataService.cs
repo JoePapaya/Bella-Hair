@@ -6,15 +6,15 @@ namespace BellaHair.Infrastructure;
 
 public class EfDataService : IDataService
 {
-    private readonly IDbContextFactory<BellaHairDbContext2> _factory;
+    private readonly IDbContextFactory<BellaHairDbContext> _factory;
 
-    public EfDataService(IDbContextFactory<BellaHairDbContext2> factory)
+    public EfDataService(IDbContextFactory<BellaHairDbContext> factory)
     {
         _factory = factory;
     }
 
     // Helper: always get a fresh context
-    private BellaHairDbContext2 CreateContext() => _factory.CreateDbContext();
+    private BellaHairDbContext CreateContext() => _factory.CreateDbContext();
 
     // ---------- Lists ----------
     public IList<Booking> Bookinger

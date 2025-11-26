@@ -8,16 +8,16 @@ using System.Threading.Tasks;
 
 namespace BellaHair.Infrastructure;
 
-public class BellaHairDbContextFactory : IDesignTimeDbContextFactory<BellaHairDbContext2>
+public class BellaHairDbContextFactory : IDesignTimeDbContextFactory<BellaHairDbContext>
 {
-    public BellaHairDbContext2 CreateDbContext(string[] args)
+    public BellaHairDbContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<BellaHairDbContext2>();
+        var optionsBuilder = new DbContextOptionsBuilder<BellaHairDbContext>();
 
         // Use the SAME connection string as your Program.cs
         optionsBuilder.UseSqlServer(
             "Server=(localdb)\\mssqllocaldb;Database=BellaHairDb;Trusted_Connection=True;MultipleActiveResultSets=true");
 
-        return new BellaHairDbContext2(optionsBuilder.Options);
+        return new BellaHairDbContext(optionsBuilder.Options);
     }
 }

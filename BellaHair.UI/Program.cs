@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // ?? Use DbContextFactory instead of a long-lived DbContext
-builder.Services.AddDbContextFactory<BellaHairDbContext2>(options =>
+builder.Services.AddDbContextFactory<BellaHairDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 

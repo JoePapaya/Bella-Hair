@@ -8,24 +8,24 @@ using NUnit.Framework;
 
 namespace BellaHair.Test;
 
-internal class TestDbContextFactory : IDbContextFactory<BellaHairDbContext2>
+internal class TestDbContextFactory : IDbContextFactory<BellaHairDbContext>
 {
-    private readonly DbContextOptions<BellaHairDbContext2> _options;
+    private readonly DbContextOptions<BellaHairDbContext> _options;
 
-    public TestDbContextFactory(DbContextOptions<BellaHairDbContext2> options)
+    public TestDbContextFactory(DbContextOptions<BellaHairDbContext> options)
     {
         _options = options;
     }
 
-    public BellaHairDbContext2 CreateDbContext()
-        => new BellaHairDbContext2(_options);
+    public BellaHairDbContext CreateDbContext()
+        => new BellaHairDbContext(_options);
 }
 
 [NUnit.Framework.TestFixture]   // <-- fully qualified
 public class CustomerApplicationServiceTest
 {
     private IDataService _dataService = null!;
-    private DbContextOptions<BellaHairDbContext2> _options = null!;
+    private DbContextOptions<BellaHairDbContext> _options = null!;
     private string _dbName = null!;
 
     [NUnit.Framework.SetUp]
@@ -33,7 +33,7 @@ public class CustomerApplicationServiceTest
     {
         _dbName = Guid.NewGuid().ToString();
 
-        _options = new DbContextOptionsBuilder<BellaHairDbContext2>()
+        _options = new DbContextOptionsBuilder<BellaHairDbContext>()
             .UseInMemoryDatabase(_dbName)
             .Options;
 
