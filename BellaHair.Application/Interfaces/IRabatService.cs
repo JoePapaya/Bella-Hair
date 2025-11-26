@@ -7,7 +7,8 @@ public interface IRabatService
     DiscountResult BeregnBedsteRabat(
         decimal originalPrice,
         Kunde? kunde,
-        string? valgtRabatCode);
+        string? valgtRabatCode,
+        DateTime? bookingDate = null);
 
     IEnumerable<Rabat> GetTilgængeligeRabatterForKunde(Kunde? kunde);
 }

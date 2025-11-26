@@ -64,8 +64,10 @@
                     var discountCalc = RabatService.BeregnBedsteRabat(
                     behandling?.Pris ?? 0,
                     kunde,
-                    null // altid automatisk bedste rabat
+                    null,               // altid automatisk bedste rabat
+                    booking.Tidspunkt   // 🔹 vigtig: bookingens dato
                     );
+
 
 
                     <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
@@ -116,11 +118,15 @@
                                 ✏️
                             </button>
 
-                            <button @onclick="@(() => deleteBookingId = booking.BookingId)"
-                                    class="p-2 hover:bg-gray-200 rounded text-red-600">
-                                🗑️
-                            </button>
+                            @if (booking.Status != BookingStatus.Gennemført)
+                            {
+                                <button @onclick="@(() => deleteBookingId = booking.BookingId)"
+                                        class="p-2 hover:bg-gray-200 rounded text-red-600">
+                                    🗑️
+                                </button>
+                            }
                         </div>
+
                     </div>
                 }
             </div>
@@ -374,12 +380,24 @@
 
     private async Task ConfirmDelete()
     {
-        if (deleteBookingId.HasValue)
+        if (!deleteBookingId.HasValue)
+            return;
+
+        try
         {
             await BookingAppService.DeleteAsync(deleteBookingId.Value);
         }
-
-        deleteBookingId = null;
-        StateHasChanged();
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            await JSRuntime.InvokeVoidAsync("alert", $"Fejl ved sletning: {ex.Message}");
+        }
+        finally
+        {
+            // Uanset om det lykkes eller fejler, luk dialogen
+            deleteBookingId = null;
+            StateHasChanged();
+        }
     }
+
 }

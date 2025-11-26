@@ -1,9 +1,17 @@
 ﻿@page "/"
 @page "/dashboard"
+
 @using BellaHair.Domain.Entities
-@inject BellaHair.Application.Interfaces.IDataService DataService
+@using BellaHair.Application.Interfaces
+@using BellaHair.Application.Statistics
+
+@inject IDataService DataService
+@inject IStatisticsApplicationService StatisticsService
 @inject IJSRuntime JSRuntime
+
 @rendermode InteractiveServer
+
+
 
 <div class="p-8">
     <div class="mb-8">
@@ -74,6 +82,64 @@
             </div>
         </div>
     </div>
+</div>
+
+@if (_discountStats is not null)
+{
+    <!-- Rabat-statistik (sidste 30 dage) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Stamkunderabat -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6 flex flex-col gap-2">
+            <p class="text-gray-600 text-sm mb-1">Stamkunderabat (30 dage)</p>
+            <p class="text-gray-900 text-2xl font-semibold">
+                @Math.Round(_discountStats.Stamkunde.ShareOfAllBookingsPercent, 1)% af alle bookinger
+            </p>
+            <p class="text-gray-600 text-sm">
+                Antal bookinger med stamkunderabat: @_discountStats.Stamkunde.NumberOfBookings
+            </p>
+            <p class="text-gray-600 text-sm">
+                Rabat i alt: @_discountStats.Stamkunde.DiscountAmount.ToString("C")
+            </p>
+            <p class="text-gray-600 text-sm">
+                Gns. rabat pr. booking: @_discountStats.Stamkunde.AverageDiscountPerBooking.ToString("C")
+            </p>
+        </div>
+
+        <!-- Kampagner -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6 flex flex-col gap-2">
+            <p class="text-gray-600 text-sm mb-1">Kampagner (30 dage)</p>
+            <p class="text-gray-900 text-2xl font-semibold">
+                @Math.Round(_discountStats.Kampagner.ShareOfAllBookingsPercent, 1)% af alle bookinger
+            </p>
+            <p class="text-gray-600 text-sm">
+                Antal bookinger med kampagnerabat: @_discountStats.Kampagner.NumberOfBookings
+            </p>
+            <p class="text-gray-600 text-sm">
+                Rabat i alt: @_discountStats.Kampagner.DiscountAmount.ToString("C")
+            </p>
+            <p class="text-gray-600 text-sm">
+                Gns. rabat pr. booking: @_discountStats.Kampagner.AverageDiscountPerBooking.ToString("C")
+            </p>
+        </div>
+
+        <!-- Total rabat / omsætning -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6 flex flex-col gap-2">
+            <p class="text-gray-600 text-sm mb-1">Samlet rabateffekt (30 dage)</p>
+            <p class="text-gray-900 text-2xl font-semibold">
+                Total rabat: @_discountStats.TotalDiscountAmount.ToString("C")
+            </p>
+            <p class="text-gray-600 text-sm">
+                Omsætning før rabat: @_discountStats.TotalRevenueBeforeDiscount.ToString("C")
+            </p>
+            <p class="text-gray-600 text-sm">
+                Omsætning efter rabat: @_discountStats.TotalRevenueAfterDiscount.ToString("C")
+            </p>
+        </div>
+    </div>
+}
+
+<!-- Seneste bookinger -->
+<div class="bg-white rounded-lg border border-gray-200">
 
     <!-- Seneste bookinger -->
     <div class="bg-white rounded-lg border border-gray-200">
@@ -110,3 +176,16 @@
         </div>
     </div>
 </div>
+@code
+{
+    private DiscountStatistics? _discountStats;
+
+    protected override void OnInitialized()
+    {
+        // Eksempel: statistik for de sidste 30 dage
+        var to = DateTime.Today;
+        var from = to.AddDays(-30);
+
+        _discountStats = StatisticsService.GetDiscountStatistics(from, to);
+    }
+}
