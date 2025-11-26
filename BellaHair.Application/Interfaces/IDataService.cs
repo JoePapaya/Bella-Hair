@@ -17,8 +17,6 @@ namespace BellaHair.Application.Interfaces
         IList<Faktura> Fakturaer { get; }
 
 
-        Task DeleteBookingAsync(int bookingId);
-
         // ---------- Medarbejder ----------
 
         Task AddMedarbejderAsync(Medarbejder medarbejder);
@@ -43,6 +41,8 @@ namespace BellaHair.Application.Interfaces
         Task<Booking?> GetBookingAsync(int bookingId);
         Task<Booking> AddBookingAsync(Booking booking);
         Task UpdateBookingAsync(Booking booking);
+        Task DeleteBookingAsync(int bookingid);
+
 
         // ---------- Rabat ----------
         Task<Rabat> AddRabatAsync(Rabat rabat);

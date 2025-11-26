@@ -6,15 +6,15 @@ namespace BellaHair.Infrastructure;
 
 public class EfDataService : IDataService
 {
-    private readonly IDbContextFactory<BellaHairDbContext2> _factory;
+    private readonly IDbContextFactory<BellaHairDbContext> _factory;
 
-    public EfDataService(IDbContextFactory<BellaHairDbContext2> factory)
+    public EfDataService(IDbContextFactory<BellaHairDbContext> factory)
     {
         _factory = factory;
     }
 
     // Helper: always get a fresh context
-    private BellaHairDbContext2 CreateContext() => _factory.CreateDbContext();
+    private BellaHairDbContext CreateContext() => _factory.CreateDbContext();
 
     // ---------- Lists ----------
     public IList<Booking> Bookinger
@@ -112,16 +112,34 @@ public class EfDataService : IDataService
     }
 
     // ---------- Booking ----------
-    public async Task DeleteBookingAsync(int bookingId)
+    public async Task DeleteBookingAsync(int bookkingid)
     {
-        await using var db = CreateContext();
-        var booking = await db.Bookinger.FindAsync(bookingId);
-        if (booking is null) return;
+        using var db = CreateContext();
 
+        var booking = await db.Bookinger.FindAsync(bookkingid);
+        if (booking == null)
+            return;
+
+        // 🔴 Må ikke slette gennemførte bookinger (de har betalt / faktura)
+        if (booking.Status == BookingStatus.Gennemført)
+        {
+            throw new InvalidOperationException(
+                "Kan ikke slette en gennemført booking, fordi der er oprettet en faktura. " +
+                "Lav i stedet en kreditnota eller håndter det manuelt.");
+        }
+
+        // ✅ Booking er IKKE gennemført → her må vi godt rydde op
+
+        // Slet tilhørende faktura(er), hvis de findes
+        var fakturaer = db.Fakturaer.Where(f => f.BookingId == bookkingid);
+        db.Fakturaer.RemoveRange(fakturaer);
+
+        // Slet selve bookingen
         db.Bookinger.Remove(booking);
+
         await db.SaveChangesAsync();
     }
-    
+
     public async Task<Booking?> GetBookingAsync(int bookingId)
     {
         await using var db = CreateContext();

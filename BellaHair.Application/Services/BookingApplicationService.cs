@@ -1,5 +1,6 @@
 ﻿using BellaHair.Application.Interfaces;
 using BellaHair.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BellaHair.Application.Services;
 
@@ -40,8 +41,24 @@ public class BookingApplicationService : IBookingApplicationService
         await _data.UpdateBookingAsync(booking);
     }
 
-    public Task DeleteAsync(int id)
-        => _data.DeleteBookingAsync(id);
+    public async Task DeleteAsync(int id)
+    {
+        try
+        {
+            await _data.DeleteBookingAsync(id);
+        }
+        catch (DbUpdateException ex)
+        {
+            var inner = ex.InnerException?.Message ?? ex.Message;
+            throw new Exception(inner, ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.InnerException?.Message ?? ex.Message, ex);
+        }
+    }
+
+
 
 
 }
