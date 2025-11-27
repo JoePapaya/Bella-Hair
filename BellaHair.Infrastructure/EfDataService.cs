@@ -115,6 +115,7 @@ public class EfDataService : IDataService
     public async Task DeleteBookingAsync(int bookkingid)
     {
         using var db = CreateContext();
+        await using var t = await db.Database.BeginTransactionAsync();
 
         var booking = await db.Bookinger.FindAsync(bookkingid);
         if (booking == null)
@@ -135,7 +136,11 @@ public class EfDataService : IDataService
         db.Fakturaer.RemoveRange(fakturaer);
 
         // Slet selve bookingen
+        db.Fakturaer.RemoveRange(fakturaer);
         db.Bookinger.Remove(booking);
+        await db.SaveChangesAsync();
+
+        await t.CommitAsync();
 
         await db.SaveChangesAsync();
     }
@@ -153,17 +158,82 @@ public class EfDataService : IDataService
     public async Task<Booking> AddBookingAsync(Booking booking)
     {
         await using var db = CreateContext();
-        db.Bookinger.Add(booking);
-        await db.SaveChangesAsync();
+        await using var transaction =
+            await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+
+        try
+        {
+            // Tjek om tidspunktet allerede er booket efter at transaktionen er startet
+            bool overlap = await db.Bookinger
+                .AnyAsync(b =>
+                    b.MedarbejderId == booking.MedarbejderId &&
+                    b.Tidspunkt == booking.Tidspunkt);
+
+            if (overlap)
+                throw new InvalidOperationException("Medarbejderen er allerede booket på dette tidspunkt.");
+
+            db.Bookinger.Add(booking);
+            await db.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+
         return booking;
     }
 
     public async Task UpdateBookingAsync(Booking booking)
     {
         await using var db = CreateContext();
-        db.Bookinger.Update(booking);
-        await db.SaveChangesAsync();
+
+        // Start en transaktion → SERIALIZABLE forhindrer race conditions
+        await using var transaction =
+            await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+
+        try
+        {
+            // Hent den eksisterende booking fra DB
+            var existing = await db.Bookinger
+                .FirstOrDefaultAsync(b => b.BookingId == booking.BookingId);
+
+            if (existing == null)
+                throw new InvalidOperationException("Booking blev ikke fundet.");
+
+            // Opdater de relevante felter
+            existing.MedarbejderId = booking.MedarbejderId;
+            existing.Tidspunkt = booking.Tidspunkt;
+            existing.BehandlingId = booking.BehandlingId;
+
+            // Før du gemmer → tjek om tidpunktet allerede er taget
+            bool overlap = await db.Bookinger.AnyAsync(b =>
+                b.BookingId != booking.BookingId && // Ignorer dig selv
+                b.MedarbejderId == existing.MedarbejderId &&
+                b.Tidspunkt == existing.Tidspunkt);
+
+            if (overlap)
+            {
+                throw new InvalidOperationException(
+                    "Medarbejderen er allerede booket på dette tidspunkt.");
+            }
+
+            // Ingen overlap → opdater booking
+            db.Bookinger.Update(existing);
+            await db.SaveChangesAsync();
+
+            // Commit transaktion
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
+
 
 
     // ---------- Kunde ----------
@@ -274,6 +344,8 @@ public class EfDataService : IDataService
     {
         using var db = CreateContext();
 
+        await using var transaction = await db.Database.BeginTransactionAsync();
+
         // Sørg for at vi har den nyeste booking fra databasen (med BookingId)
         var dbBooking = await db.Bookinger.FindAsync(booking.BookingId);
         if (dbBooking == null)
@@ -304,6 +376,13 @@ public class EfDataService : IDataService
         };
 
         db.Fakturaer.Add(faktura);
+
+        dbBooking.Status = BookingStatus.Gennemført;
+        db.Bookinger.Update(dbBooking);
+
+        await db.SaveChangesAsync();
+        await transaction.CommitAsync();
+
         await db.SaveChangesAsync();
 
         return faktura;
