@@ -1,5 +1,6 @@
 ﻿using BellaHair.Application.Interfaces;
 using BellaHair.Domain.Entities;
+using BellaHair.Domain.Enums;
 
 namespace BellaHair.Application.Services;
 
@@ -18,7 +19,11 @@ public class LoyaltyService : ILoyaltyService
             .Count(b => b.KundeId == kunde.KundeId &&
                         b.Status == BookingStatus.Gennemført);
 
-        if (antalGennemførte >= 30) return "VIP";
+        // Opgave-krav:
+        // 5–9  = Bronze
+        // 10–19 = Sølv
+        // 20+   = Guld
+
         if (antalGennemførte >= 20) return "Guld";
         if (antalGennemførte >= 10) return "Sølv";
         if (antalGennemførte >= 5) return "Bronze";

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
-    [Migration("20251125195422_InitialCreate")]
+    [Migration("20251128150040_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -51,6 +51,48 @@ namespace BellaHair.Infrastructure.Migrations
                     b.HasKey("BehandlingId");
 
                     b.ToTable("Behandlinger");
+
+                    b.HasData(
+                        new
+                        {
+                            BehandlingId = 1,
+                            Navn = "Standard klip",
+                            Pris = 100m,
+                            Type = "",
+                            VarighedMinutter = 0
+                        },
+                        new
+                        {
+                            BehandlingId = 2,
+                            Navn = "Herreklip",
+                            Pris = 80m,
+                            Type = "",
+                            VarighedMinutter = 0
+                        },
+                        new
+                        {
+                            BehandlingId = 3,
+                            Navn = "Farve",
+                            Pris = 150m,
+                            Type = "",
+                            VarighedMinutter = 0
+                        },
+                        new
+                        {
+                            BehandlingId = 4,
+                            Navn = "Balayage",
+                            Pris = 250m,
+                            Type = "",
+                            VarighedMinutter = 0
+                        },
+                        new
+                        {
+                            BehandlingId = 5,
+                            Navn = "Kurbehandling",
+                            Pris = 60m,
+                            Type = "",
+                            VarighedMinutter = 0
+                        });
                 });
 
             modelBuilder.Entity("BellaHair.Domain.Entities.Booking", b =>
@@ -191,6 +233,47 @@ namespace BellaHair.Infrastructure.Migrations
                     b.HasKey("KundeId");
 
                     b.ToTable("Kunder");
+
+                    b.HasData(
+                        new
+                        {
+                            KundeId = 1,
+                            Adresse = "",
+                            BesøgAntal = 0,
+                            By = "",
+                            Email = "",
+                            Fødselsdag = new DateOnly(1, 1, 1),
+                            Navn = "Kendrick",
+                            Points = 0,
+                            Postnr = "",
+                            Telefon = ""
+                        },
+                        new
+                        {
+                            KundeId = 2,
+                            Adresse = "",
+                            BesøgAntal = 0,
+                            By = "",
+                            Email = "",
+                            Fødselsdag = new DateOnly(1, 1, 1),
+                            Navn = "J. Cole",
+                            Points = 0,
+                            Postnr = "",
+                            Telefon = ""
+                        },
+                        new
+                        {
+                            KundeId = 3,
+                            Adresse = "",
+                            BesøgAntal = 0,
+                            By = "",
+                            Email = "",
+                            Fødselsdag = new DateOnly(1, 1, 1),
+                            Navn = "Drake",
+                            Points = 0,
+                            Postnr = "",
+                            Telefon = ""
+                        });
                 });
 
             modelBuilder.Entity("BellaHair.Domain.Entities.Medarbejder", b =>
@@ -215,6 +298,29 @@ namespace BellaHair.Infrastructure.Migrations
                     b.HasKey("MedarbejderId");
 
                     b.ToTable("Medarbejdere");
+
+                    b.HasData(
+                        new
+                        {
+                            MedarbejderId = 1,
+                            ErFreelancer = false,
+                            Kompetencer = "[]",
+                            Navn = "Mia"
+                        },
+                        new
+                        {
+                            MedarbejderId = 2,
+                            ErFreelancer = false,
+                            Kompetencer = "[]",
+                            Navn = "Sara"
+                        },
+                        new
+                        {
+                            MedarbejderId = 3,
+                            ErFreelancer = false,
+                            Kompetencer = "[]",
+                            Navn = "Jonas"
+                        });
                 });
 
             modelBuilder.Entity("BellaHair.Domain.Entities.Rabat", b =>
@@ -264,6 +370,49 @@ namespace BellaHair.Infrastructure.Migrations
                     b.HasKey("RabatId");
 
                     b.ToTable("Rabatter");
+
+                    b.HasData(
+                        new
+                        {
+                            RabatId = 1001,
+                            Aktiv = true,
+                            Description = "5% rabat til Bronze-stamkunder",
+                            IsKampagne = false,
+                            Navn = "Stamkunde Bronze",
+                            Percentage = 0.05m,
+                            RequiredLoyaltyTier = "Bronze"
+                        },
+                        new
+                        {
+                            RabatId = 1002,
+                            Aktiv = true,
+                            Description = "10% rabat til Sølv-stamkunder",
+                            IsKampagne = false,
+                            Navn = "Stamkunde Sølv",
+                            Percentage = 0.10m,
+                            RequiredLoyaltyTier = "Sølv"
+                        },
+                        new
+                        {
+                            RabatId = 1003,
+                            Aktiv = true,
+                            Description = "15% rabat til Guld-stamkunder",
+                            IsKampagne = false,
+                            Navn = "Stamkunde Guld",
+                            Percentage = 0.15m,
+                            RequiredLoyaltyTier = "Guld"
+                        },
+                        new
+                        {
+                            RabatId = 2001,
+                            Aktiv = true,
+                            Description = "Julekampagne: 50 kr rabat på alle behandlinger",
+                            FixedAmount = 50m,
+                            IsKampagne = true,
+                            Navn = "Julekampagne",
+                            SlutDato = new DateTime(2025, 12, 24, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            StartDato = new DateTime(2025, 12, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("BellaHair.Domain.Entities.Booking", b =>

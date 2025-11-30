@@ -2,9 +2,11 @@
 @rendermode InteractiveServer
 @using BellaHair.Domain.Entities
 @using BellaHair.Domain.Services
+@using BellaHair.Domain.Enums
 @inject BellaHair.Application.Interfaces.IDataService DataService
 @inject BellaHair.Application.Interfaces.IBookingApplicationService BookingAppService
 @inject BellaHair.Application.Interfaces.IRabatService RabatService
+@inject BellaHair.Application.Interfaces.ILoyaltyService LoyaltyService
 @inject IJSRuntime JSRuntime
 
 <div class="p-8">
@@ -30,14 +32,9 @@
             Alle
         </button>
 
-        <button @onclick="@(() => SetStatusFilter("Bekræftet"))"
-                class="@GetFilterButtonClass("Bekræftet")">
-            Bekræftet
-        </button>
-
-        <button @onclick="@(() => SetStatusFilter("Afventer"))"
-                class="@GetFilterButtonClass("Afventer")">
-            Afventer
+        <button @onclick="@(() => SetStatusFilter("Kommende"))"
+                class="@GetFilterButtonClass("Kommende")">
+            Kommende
         </button>
 
         <button @onclick="@(() => SetStatusFilter("Gennemført"))"
@@ -53,80 +50,45 @@
         </div>
 
         <div class="p-6">
-            <div class="space-y-4">
-                @foreach (var booking in SortedFilteredBookinger)
+            <div class="space-y-6">
+
+                @if (selectedStatus == "all")
                 {
-                    var kunde = DataService.Kunder.FirstOrDefault(k => k.KundeId == booking.KundeId);
-                    var behandling = DataService.Behandlinger.FirstOrDefault(t => t.BehandlingId == booking.BehandlingId);
-                    var medarbejder = DataService.Medarbejdere.FirstOrDefault(m => m.MedarbejderId == booking.MedarbejderId);
-
-                    // Brug RabatService til at beregne bedste rabat
-                    var discountCalc = RabatService.BeregnBedsteRabat(
-                    behandling?.Pris ?? 0,
-                    kunde,
-                    null,               // altid automatisk bedste rabat
-                    booking.Tidspunkt   // 🔹 vigtig: bookingens dato
-                    );
-
-
-
-                    <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-1">
-                                <p class="text-gray-900">@kunde?.Navn</p>
-
-                                @if (!string.IsNullOrEmpty(kunde?.LoyaltyTier))
+                    <!-- Først KOMMENDE bookinger -->
+                    @if (KommendeBookinger.Any())
+                    {
+                        <div>
+                            <h3 class="text-gray-800 mb-3 text-sm font-semibold">Kommende bookinger</h3>
+                            <div class="space-y-3">
+                                @foreach (var booking in KommendeBookinger)
                                 {
-                                    <span class="px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700">
-                                        @kunde!.LoyaltyTier
-                                    </span>
+                                    @BookingRow(booking)
                                 }
-
-                                <span class="@GetStatusBadgeClass(booking.Status) px-2 py-0.5 rounded-full text-xs">
-                                    @booking.Status.ToString()
-                                </span>
                             </div>
-
-                            <p class="text-sm text-gray-600">@behandling?.Navn</p>
-                            <p class="text-xs text-gray-500">Medarbejder: @medarbejder?.Navn</p>
                         </div>
+                    }
 
-                        <div class="text-right">
-                            <p class="text-gray-900">@booking.Tidspunkt.ToString("ddd dd. MMM yyyy")</p>
-                            <p class="text-sm text-gray-600">@booking.Tidspunkt.ToString("HH:mm")</p>
-                            <p class="text-sm text-gray-600">@booking.Varighed min</p>
+                    <!-- Derefter GENNEMFØRTE bookinger -->
+                    @if (GennemførteBookinger.Any())
+                    {
+                        <div class="pt-4 border-t border-gray-200">
+                            <h3 class="text-gray-800 mb-3 text-sm font-semibold">Gennemførte bookinger</h3>
+                            <div class="space-y-3">
+                                @foreach (var booking in GennemførteBookinger)
+                                {
+                                    @BookingRow(booking)
+                                }
+                            </div>
                         </div>
-
-                        <div class="text-right min-w-[140px]">
-                            <p class="text-gray-900">@Math.Round(discountCalc.FinalPrice) kr</p>
-                            @if (discountCalc.AppliedDiscount != null)
-                            {
-                                <p class="text-xs text-gray-400 line-through">@discountCalc.OriginalPrice kr</p>
-                                <p class="text-xs text-green-600">
-                                    @discountCalc.AppliedDiscount.Navn
-                                    @if (!string.IsNullOrWhiteSpace(discountCalc.AppliedDiscount.Code))
-                                    {
-                                        <span>(@discountCalc.AppliedDiscount.Code)</span>
-                                    }
-                                </p>
-                            }
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button @onclick="@(() => EditBooking(booking.BookingId))"
-                                    class="p-2 hover:bg-gray-200 rounded">
-                                ✏️
-                            </button>
-
-                            @if (booking.Status != BookingStatus.Gennemført)
-                            {
-                                <button @onclick="@(() => deleteBookingId = booking.BookingId)"
-                                        class="p-2 hover:bg-gray-200 rounded text-red-600">
-                                    🗑️
-                                </button>
-                            }
-                        </div>
-
+                    }
+                }
+                else
+                {
+                    <div class="space-y-3">
+                        @foreach (var booking in SortedFilteredBookinger)
+                        {
+                            @BookingRow(booking)
+                        }
                     </div>
                 }
             </div>
@@ -188,8 +150,6 @@
                 </div>
             </div>
 
-
-
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Varighed (min)</label>
                 <input type="number" class="w-full border p-2 rounded" @bind="editModel.Varighed" />
@@ -197,15 +157,28 @@
 
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Status</label>
-                <select class="w-full border p-2 rounded" @bind="editModel.Status">
-                    @foreach (var s in Enum.GetValues<BookingStatus>())
-                    {
-                        <option value="@s">@s</option>
-                    }
-                </select>
+
+                @if (isEditing && editModel.Status == BookingStatus.Gennemført)
+                {
+                    <!-- Når booking allerede er gennemført: status låst -->
+                    <select class="w-full border p-2 rounded bg-gray-100 text-gray-600" disabled>
+                        <option value="@BookingStatus.Gennemført">Gennemført</option>
+                    </select>
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        Status kan ikke ændres for en gennemført booking, fordi der kan være oprettet faktura.
+                    </p>
+                }
+                else
+                {
+                    <!-- Ny eller kommende booking: status kan ændres -->
+                    <select class="w-full border p-2 rounded" @bind="editModel.Status">
+                        <option value="@BookingStatus.Kommende">Kommende</option>
+                        <option value="@BookingStatus.Gennemført">Gennemført</option>
+                    </select>
+                }
             </div>
 
-            
 
             <div class="flex justify-end gap-2 pt-2">
                 <button class="px-4 py-2 border rounded-lg hover:bg-gray-50"
@@ -267,12 +240,28 @@
         tidInput = e.Value?.ToString() ?? DateTime.Now.ToString("HH:mm");
     }
 
+    // --- Hjælpe-properties til sortering / filtrering ---
 
+    private IEnumerable<Booking> AlleBookinger =>
+        DataService.Bookinger.OrderBy(b => b.Tidspunkt);
+
+    private IEnumerable<Booking> KommendeBookinger =>
+        DataService.Bookinger
+            .Where(b => b.Status == BookingStatus.Kommende)
+            .OrderBy(b => b.Tidspunkt);
+
+    private IEnumerable<Booking> GennemførteBookinger =>
+        DataService.Bookinger
+            .Where(b => b.Status == BookingStatus.Gennemført)
+            .OrderByDescending(b => b.Tidspunkt);
 
     private IEnumerable<Booking> SortedFilteredBookinger =>
-        DataService.Bookinger
-            .Where(b => selectedStatus == "all" || b.Status.ToString() == selectedStatus)
-            .OrderBy(b => b.Tidspunkt);
+        selectedStatus switch
+        {
+            "Kommende" => KommendeBookinger,
+            "Gennemført" => GennemførteBookinger,
+            _ => AlleBookinger
+        };
 
     private void SetStatusFilter(string status) => selectedStatus = status;
 
@@ -287,8 +276,7 @@
     private string GetStatusBadgeClass(BookingStatus status) =>
         status switch
         {
-            BookingStatus.Bekræftet => "bg-green-100 text-green-700",
-            BookingStatus.Afventer => "bg-yellow-100 text-yellow-700",
+            BookingStatus.Kommende => "bg-blue-100 text-blue-700",
             BookingStatus.Gennemført => "bg-gray-100 text-gray-700",
             _ => "bg-gray-100 text-gray-700"
         };
@@ -296,8 +284,7 @@
     private string GetStatusTitle() =>
         selectedStatus switch
         {
-            "Bekræftet" => "Bekræftede bookinger",
-            "Afventer" => "Afventende bookinger",
+            "Kommende" => "Kommende bookinger",
             "Gennemført" => "Gennemførte bookinger",
             _ => "Alle bookinger"
         };
@@ -308,7 +295,7 @@
         editModel = new Booking
         {
             Varighed = 30,
-            Status = BookingStatus.Afventer
+            Status = BookingStatus.Kommende  // ny booking starter som Kommende
         };
 
         datoInput = DateTime.Now.ToString("yyyy-MM-dd");
@@ -316,8 +303,6 @@
 
         showDialog = true;
     }
-
-    
 
     private async Task EditBooking(int id)
     {
@@ -339,7 +324,6 @@
         datoInput = b.Tidspunkt.ToString("yyyy-MM-dd");
         tidInput = b.Tidspunkt.ToString("HH:mm");
 
-
         isEditing = true;
         showDialog = true;
     }
@@ -352,8 +336,6 @@
         {
             editModel.Tidspunkt = parsed;
         }
-
-
 
         try
         {
@@ -394,10 +376,188 @@
         }
         finally
         {
-            // Uanset om det lykkes eller fejler, luk dialogen
             deleteBookingId = null;
             StateHasChanged();
         }
     }
 
+    // Lille hjælpemetode for at undgå duplikeret markup
+    private RenderFragment BookingRow(Booking booking) => __builder =>
+    {
+        var kunde = DataService.Kunder.FirstOrDefault(k => k.KundeId == booking.KundeId);
+        var behandling = DataService.Behandlinger.FirstOrDefault(t => t.BehandlingId == booking.BehandlingId);
+        var medarbejder = DataService.Medarbejdere.FirstOrDefault(m => m.MedarbejderId == booking.MedarbejderId);
+
+        // ---------- PRIS / RABAT LOGIK ----------
+        decimal finalPrice;
+        decimal? originalPriceToShow = null;
+        string? rabatLabel = null;
+        bool hasRabat = false;
+
+        if (booking.Status == BookingStatus.Gennemført)
+        {
+            // Brug snapshot fra Faktura
+            var faktura = DataService.Fakturaer.FirstOrDefault(f => f.BookingId == booking.BookingId);
+
+            if (faktura is not null)
+            {
+                finalPrice = faktura.TotalBeløb;
+                if (faktura.RabatBeløb > 0)
+                {
+                    originalPriceToShow = faktura.Beløb;
+                    hasRabat = true;
+                    rabatLabel = string.IsNullOrWhiteSpace(faktura.RabatTekst)
+                        ? "Rabat"
+                        : faktura.RabatTekst;
+                }
+            }
+            else
+            {
+                // Fallback hvis der mangler faktura (burde ikke ske):
+                var calc = RabatService.BeregnBedsteRabat(
+                    behandling?.Pris ?? 0,
+                    kunde,
+                    null,
+                    booking.Tidspunkt
+                );
+                finalPrice = calc.FinalPrice;
+                if (calc.AppliedDiscount != null)
+                {
+                    originalPriceToShow = calc.OriginalPrice;
+                    hasRabat = true;
+                    rabatLabel = !string.IsNullOrWhiteSpace(calc.AppliedDiscount.Code)
+                        ? $"{calc.AppliedDiscount.Navn} ({calc.AppliedDiscount.Code})"
+                        : calc.AppliedDiscount.Navn;
+                }
+            }
+        }
+        else
+        {
+            // Kommende booking → brug live rabatberegning
+            var calc = RabatService.BeregnBedsteRabat(
+                behandling?.Pris ?? 0,
+                kunde,
+                null,
+                booking.Tidspunkt
+            );
+            finalPrice = calc.FinalPrice;
+            if (calc.AppliedDiscount != null)
+            {
+                originalPriceToShow = calc.OriginalPrice;
+                hasRabat = true;
+                rabatLabel = !string.IsNullOrWhiteSpace(calc.AppliedDiscount.Code)
+                    ? $"{calc.AppliedDiscount.Navn} ({calc.AppliedDiscount.Code})"
+                    : calc.AppliedDiscount.Navn;
+            }
+        }
+
+        __builder.OpenElement(0, "div");
+        __builder.AddAttribute(1, "class", "flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors");
+
+        // venstre side
+        __builder.OpenElement(2, "div");
+        __builder.AddAttribute(3, "class", "flex-1 min-w-0");
+
+        __builder.OpenElement(4, "div");
+        __builder.AddAttribute(5, "class", "flex items-center gap-2 mb-1");
+
+        __builder.OpenElement(6, "p");
+        __builder.AddAttribute(7, "class", "text-gray-900");
+        __builder.AddContent(8, kunde?.Navn);
+        __builder.CloseElement(); // p
+
+        if (!string.IsNullOrEmpty(kunde?.LoyaltyTier))
+        {
+            __builder.OpenElement(9, "span");
+            __builder.AddAttribute(10, "class", "px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700");
+            __builder.AddContent(11, kunde!.LoyaltyTier);
+            __builder.CloseElement();
+        }
+
+        __builder.OpenElement(12, "span");
+        __builder.AddAttribute(13, "class", $"{GetStatusBadgeClass(booking.Status)} px-2 py-0.5 rounded-full text-xs");
+        __builder.AddContent(14, booking.Status.ToString());
+        __builder.CloseElement(); // span
+
+        __builder.CloseElement(); // div (navn + badges)
+
+        __builder.OpenElement(15, "p");
+        __builder.AddAttribute(16, "class", "text-sm text-gray-600");
+        __builder.AddContent(17, behandling?.Navn);
+        __builder.CloseElement();
+
+        __builder.OpenElement(18, "p");
+        __builder.AddAttribute(19, "class", "text-xs text-gray-500");
+        __builder.AddContent(20, $"Medarbejder: {medarbejder?.Navn}");
+        __builder.CloseElement();
+
+        __builder.CloseElement(); // venstre side
+
+        // midten: tid
+        __builder.OpenElement(21, "div");
+        __builder.AddAttribute(22, "class", "text-right");
+        __builder.OpenElement(23, "p");
+        __builder.AddAttribute(24, "class", "text-gray-900");
+        __builder.AddContent(25, booking.Tidspunkt.ToString("ddd dd. MMM yyyy"));
+        __builder.CloseElement();
+        __builder.OpenElement(26, "p");
+        __builder.AddAttribute(27, "class", "text-sm text-gray-600");
+        __builder.AddContent(28, booking.Tidspunkt.ToString("HH:mm"));
+        __builder.CloseElement();
+        __builder.OpenElement(29, "p");
+        __builder.AddAttribute(30, "class", "text-sm text-gray-600");
+        __builder.AddContent(31, $"{booking.Varighed} min");
+        __builder.CloseElement();
+        __builder.CloseElement(); // midten
+
+        // højre: pris + rabat
+        __builder.OpenElement(32, "div");
+        __builder.AddAttribute(33, "class", "text-right min-w-[140px]");
+
+        __builder.OpenElement(34, "p");
+        __builder.AddAttribute(35, "class", "text-gray-900");
+        __builder.AddContent(36, $"{Math.Round(finalPrice)} kr");
+        __builder.CloseElement();
+
+        if (hasRabat && originalPriceToShow.HasValue)
+        {
+            __builder.OpenElement(37, "p");
+            __builder.AddAttribute(38, "class", "text-xs text-gray-400 line-through");
+            __builder.AddContent(39, $"{originalPriceToShow.Value} kr");
+            __builder.CloseElement();
+
+            if (!string.IsNullOrWhiteSpace(rabatLabel))
+            {
+                __builder.OpenElement(40, "p");
+                __builder.AddAttribute(41, "class", "text-xs text-green-600");
+                __builder.AddContent(42, rabatLabel);
+                __builder.CloseElement();
+            }
+        }
+
+        __builder.CloseElement(); // pris
+
+        // actions
+        __builder.OpenElement(44, "div");
+        __builder.AddAttribute(45, "class", "flex gap-2");
+
+        __builder.OpenElement(46, "button");
+        __builder.AddAttribute(47, "class", "p-2 hover:bg-gray-200 rounded");
+        __builder.AddAttribute(48, "onclick", EventCallback.Factory.Create(this, () => EditBooking(booking.BookingId)));
+        __builder.AddContent(49, "✏️");
+        __builder.CloseElement();
+
+        if (booking.Status != BookingStatus.Gennemført)
+        {
+            __builder.OpenElement(50, "button");
+            __builder.AddAttribute(51, "class", "p-2 hover:bg-gray-200 rounded text-red-600");
+            __builder.AddAttribute(52, "onclick", EventCallback.Factory.Create(this, () => deleteBookingId = booking.BookingId));
+            __builder.AddContent(53, "🗑️");
+            __builder.CloseElement();
+        }
+
+        __builder.CloseElement(); // actions
+
+        __builder.CloseElement(); // row
+    };
 }

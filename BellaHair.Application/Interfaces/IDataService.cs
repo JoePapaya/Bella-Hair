@@ -16,9 +16,7 @@ namespace BellaHair.Application.Interfaces
         IList<Rabat> Rabatter { get; }
         IList<Faktura> Fakturaer { get; }
 
-
         // ---------- Medarbejder ----------
-
         Task AddMedarbejderAsync(Medarbejder medarbejder);
         Task UpdateMedarbejderAsync(Medarbejder medarbejder);
         Task DeleteMedarbejderAsync(int medarbejderId);
@@ -43,17 +41,22 @@ namespace BellaHair.Application.Interfaces
         Task UpdateBookingAsync(Booking booking);
         Task DeleteBookingAsync(int bookingid);
 
-
         // ---------- Rabat ----------
         Task<Rabat> AddRabatAsync(Rabat rabat);
         Task<Rabat> UpdateRabatAsync(Rabat rabat);
         Task DeleteRabatAsync(int id);
         Task<Rabat?> GetRabatAsync(int id);
-        
-        // ---------- Faktura ----------
 
+        // ---------- Faktura ----------
+        /// <summary>
+        /// Opretter en faktura for den givne booking.
+        /// Implementeres så den låser pris/rabat på tidspunktet.
+        /// </summary>
         Task<Faktura> CreateFakturaAsync(Booking booking);
 
-
+        /// <summary>
+        /// Henter faktura for en bestemt booking (eller null hvis ingen findes).
+        /// </summary>
+        Task<Faktura?> GetFakturaForBookingAsync(int bookingId);
     }
 }

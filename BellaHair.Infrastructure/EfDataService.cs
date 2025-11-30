@@ -1,5 +1,7 @@
 ﻿using BellaHair.Application.Interfaces;
 using BellaHair.Domain.Entities;
+using BellaHair.Domain.Enums;
+using BellaHair.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace BellaHair.Infrastructure;
@@ -205,12 +207,14 @@ public class EfDataService : IDataService
         db.Behandlinger.Add(behandling);
         await db.SaveChangesAsync();
     }
+
     public async Task UpdateBehandlingAsync(Behandling behandling)
     {
         await using var db = CreateContext();
         db.Behandlinger.Update(behandling);
         await db.SaveChangesAsync();
     }
+
     public async Task DeleteBehandlingAsync(int behandlingId)
     {
         await using var db = CreateContext();
@@ -219,12 +223,14 @@ public class EfDataService : IDataService
         db.Behandlinger.Remove(existing);
         await db.SaveChangesAsync();
     }
+
     public async Task<Behandling?> GetBehandlingAsync(int behandlingId)
     {
         await using var db = CreateContext();
         return await db.Behandlinger
             .FirstOrDefaultAsync(b => b.BehandlingId == behandlingId);
     }
+
     public async Task<Behandling?> GetBehandlingAsync(string navn)
     {
         await using var db = CreateContext();
@@ -233,7 +239,6 @@ public class EfDataService : IDataService
     }
 
     // ---------- Rabat ----------
-
     public async Task<Rabat> AddRabatAsync(Rabat rabat)
     {
         using var db = CreateContext();
@@ -270,7 +275,7 @@ public class EfDataService : IDataService
 
     // ---------- Faktura ----------
 
-    public async Task<Faktura> CreateFakturaAsync (Booking booking)
+    public async Task<Faktura> CreateFakturaAsync(Booking booking)
     {
         using var db = CreateContext();
 
@@ -279,13 +284,66 @@ public class EfDataService : IDataService
         if (dbBooking == null)
             throw new InvalidOperationException($"Booking med id {booking.BookingId} blev ikke fundet.");
 
-        // Find behandling for at få pris
+        // 🔒 SIKKERHED: Faktura kun for gennemførte bookinger
+        if (dbBooking.Status != BookingStatus.Gennemført)
+        {
+            throw new InvalidOperationException(
+                "Kan kun oprette faktura for bookinger med status 'Gennemført'.");
+        }
+
+        // Tjek om der allerede findes en faktura til denne booking
+        var eksisterende = await db.Fakturaer
+            .FirstOrDefaultAsync(f => f.BookingId == dbBooking.BookingId);
+
+        if (eksisterende is not null)
+        {
+            // Vi laver ikke en ny – vi genbruger den eksisterende
+            return eksisterende;
+        }
+
+        // Find behandling for at få grundpris
         var behandling = await db.Behandlinger.FindAsync(dbBooking.BehandlingId);
         var grundBeløb = behandling?.Pris ?? 0m;
 
-        // SIMPEL version: ingen rabat-logik endnu (kan vi bygge senere)
-        decimal rabatBeløb = 0m;
+        // Find kunde
+        var kunde = await db.Kunder.FindAsync(dbBooking.KundeId);
+
+        // Brug bookingens dato som "historisk" dato til kampagner
+        var dato = dbBooking.Tidspunkt.Date;
+
+        // Filtrer rabatter historisk
+        var alleRabatter = await db.Rabatter
+            .Where(r => r.Aktiv)
+            .ToListAsync();
+
+        var kandidater = alleRabatter
+            .Where(r => r.IsWithinCampaignPeriod(dato))
+            .Where(r =>
+                string.IsNullOrWhiteSpace(r.RequiredLoyaltyTier) ||
+                string.Equals(
+                    kunde?.LoyaltyTier,
+                    r.RequiredLoyaltyTier,
+                    StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        // Beregn bedste rabat
+        var discountResult = DiscountCalc.CalculateBestDiscount(
+            grundBeløb,
+            kunde,
+            dbBooking.ValgtRabat,
+            kandidater);
+
+        var rabatBeløb = discountResult.OriginalPrice - discountResult.FinalPrice;
+        if (rabatBeløb < 0) rabatBeløb = 0; // safety
+
         string? rabatTekst = null;
+        if (discountResult.AppliedDiscount is not null)
+        {
+            var d = discountResult.AppliedDiscount;
+            rabatTekst = !string.IsNullOrWhiteSpace(d.Code)
+                ? $"{d.Navn} ({d.Code})"
+                : d.Navn;
+        }
 
         var faktura = new Faktura
         {
@@ -293,9 +351,9 @@ public class EfDataService : IDataService
             BookingId = dbBooking.BookingId,
             FakturaDato = dbBooking.Tidspunkt,
 
-            Beløb = grundBeløb,
+            Beløb = discountResult.OriginalPrice,
             RabatBeløb = rabatBeløb,
-            TotalBeløb = grundBeløb - rabatBeløb,
+            TotalBeløb = discountResult.FinalPrice,
 
             RabatTekst = rabatTekst,
             ErFirmafaktura = false,
@@ -310,4 +368,11 @@ public class EfDataService : IDataService
     }
 
 
+    public async Task<Faktura?> GetFakturaForBookingAsync(int bookingId)
+    {
+        await using var db = CreateContext();
+        return await db.Fakturaer
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.BookingId == bookingId);
+    }
 }

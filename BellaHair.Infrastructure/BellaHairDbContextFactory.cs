@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Migrations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +17,13 @@ public class BellaHairDbContextFactory : IDesignTimeDbContextFactory<BellaHairDb
 
         // Use the SAME connection string as your Program.cs
         optionsBuilder.UseSqlServer(
-            "Server=(localdb)\\mssqllocaldb;Database=BellaHairDb;Trusted_Connection=True;MultipleActiveResultSets=true");
+            "Server=(localdb)\\MSSQLLocalDB;Database=BellaHairDb;Trusted_Connection=True;MultipleActiveResultSets=true");
+
 
         return new BellaHairDbContext(optionsBuilder.Options);
     }
 }
+
+//Command til at lave Migration
+//Add-Migration InitialCreate
+//Update-Database

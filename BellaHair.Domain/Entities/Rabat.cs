@@ -1,4 +1,6 @@
-﻿namespace BellaHair.Domain.Entities;
+﻿using System;
+
+namespace BellaHair.Domain.Entities;
 
 public class Rabat
 {
@@ -15,7 +17,7 @@ public class Rabat
     // Fast beløb i kr. Bruges hvis sat og Percentage ikke er sat.
     public decimal? FixedAmount { get; set; }
 
-    // Loyalitetskrav – du bruger allerede RequiredLoyaltyTier i RabatService
+    // Hvilket loyalitetsniveau der kræves (Bronze/Sølv/Guld) – som tekst
     public string? RequiredLoyaltyTier { get; set; }
 
     // Aktiver/deaktiver rabatten
@@ -64,6 +66,4 @@ public class Rabat
         // Hvis hverken procent eller fast beløb giver mening → ingen rabat
         return originalPrice;
     }
-
-
 }
