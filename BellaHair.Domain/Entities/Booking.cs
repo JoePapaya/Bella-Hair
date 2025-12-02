@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BellaHair.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,7 +22,7 @@ public class Booking
     public DateTime End => Tidspunkt.AddMinutes(Varighed);
 
 
-    
+
     public BookingStatus Status { get; set; }
     public string? ValgtRabat { get; set; }
 
@@ -32,14 +33,4 @@ public class Booking
     public Medarbejder? Medarbejder { get; set; }
     public Behandling? Behandling { get; set; }
 
-
 }
-
-
-public enum BookingStatus
-{
-    Bekræftet,
-    Afventer,
-    Gennemført
-}
-

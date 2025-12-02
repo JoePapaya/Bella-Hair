@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 
 @using BellaHair.Domain.Entities
+@using BellaHair.Domain.Enums
 @inject BellaHair.Application.Interfaces.IDataService DataService
 @inject IJSRuntime JSRuntime
 
@@ -91,7 +92,14 @@
                         </div>
                         <div class="pt-3 border-t border-gray-100 flex justify-between text-sm">
                             <span class="text-gray-600">Besøg:</span>
-                            <span class="text-gray-900">@kunde.BesøgAntal</span>
+                            <span class="text-gray-900">
+                                @{
+                                    var besøg = DataService.Bookinger
+                                    .Count(b => b.KundeId == kunde.KundeId &&
+                                    b.Status == BookingStatus.Gennemført);
+                                }
+                                @besøg
+                            </span>
                         </div>
                     </div>
 
@@ -141,18 +149,9 @@
                            class="w-full border p-2 rounded"
                            value="@fødselsdagsInput"
                            @onchange="OnBirthdayChanged" />
-
                 </div>
 
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Loyalitet</label>
-                    <select class="w-full border p-2 rounded" @bind="current.LoyaltyTier">
-                        <option value="">Ingen</option>
-                        <option value="Bronze">Bronze</option>
-                        <option value="Sølv">Sølv</option>
-                        <option value="Guld">Guld</option>
-                    </select>
-                </div>
+                @* Ingen mulighed for at vælge LoyaltyTier manuelt længere *@
             </div>
 
             <div class="flex justify-end gap-2 mt-6">
@@ -217,22 +216,19 @@
             Points = kunde.Points,
             Telefon = kunde.Telefon,
             BesøgAntal = kunde.BesøgAntal,
-            LoyaltyTier = kunde.LoyaltyTier,
+            LoyaltyTier = kunde.LoyaltyTier,  // bevares, men kan ikke ændres i UI
             Fødselsdag = kunde.Fødselsdag
         };
 
-        // DateOnly -> string til date-input
         fødselsdagsInput = current.Fødselsdag != default
-    ? current.Fødselsdag.ToString("yyyy-MM-dd")
-    : null;
-
+            ? current.Fødselsdag.ToString("yyyy-MM-dd")
+            : null;
 
         showModal = true;
     }
 
     private async Task SaveKunde()
     {
-        // string -> DateOnly, uden DateTime som mellemled
         if (!string.IsNullOrWhiteSpace(fødselsdagsInput) &&
             DateOnly.TryParse(fødselsdagsInput, out var fødselsdag))
         {
@@ -254,7 +250,6 @@
 
         await InvokeAsync(StateHasChanged);
     }
-
 
     private void CloseModal()
     {
@@ -280,9 +275,9 @@
             _ => "bg-gray-200 text-gray-600"
         };
     }
+
     private void OnBirthdayChanged(ChangeEventArgs e)
     {
         fødselsdagsInput = e.Value?.ToString();
     }
-
 }
