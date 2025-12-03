@@ -9,8 +9,6 @@ public class Rabat
     public string Navn { get; set; } = string.Empty;
 
     // Kode kunden kan skrive (valgfri)
-    public string? Code { get; set; }
-
 
     // Procent-rabat gemt som 0–1 (fx 0.10 = 10%).
     public decimal? Percentage { get; set; }
