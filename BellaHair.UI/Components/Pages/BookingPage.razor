@@ -115,12 +115,16 @@
 
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Behandling</label>
-                <select class="w-full border p-2 rounded" @bind="editModel.BehandlingId">
+                <select class="w-full border p-2 rounded" @onchange="OnBehandlingChanged">
                     @foreach (var b in DataService.Behandlinger)
                     {
-                        <option value="@b.BehandlingId">@b.Navn</option>
+                        <option value="@b.BehandlingId"
+                                selected="@(b.BehandlingId == editModel.BehandlingId)">
+                            @b.Navn
+                        </option>
                     }
                 </select>
+
             </div>
 
             <div>
@@ -158,9 +162,9 @@
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Status</label>
 
-                @if (isEditing && editModel.Status == BookingStatus.Gennemført)
+                @if (isEditing && isOriginallyCompleted)
                 {
-                    <!-- Når booking allerede er gennemført: status låst -->
+                    <!-- Booking VAR allerede gennemført, da dialogen blev åbnet → lås -->
                     <select class="w-full border p-2 rounded bg-gray-100 text-gray-600" disabled>
                         <option value="@BookingStatus.Gennemført">Gennemført</option>
                     </select>
@@ -171,13 +175,14 @@
                 }
                 else
                 {
-                    <!-- Ny eller kommende booking: status kan ændres -->
+                    <!-- Ny booking ELLER en der ikke var gennemført fra start → frit valg -->
                     <select class="w-full border p-2 rounded" @bind="editModel.Status">
                         <option value="@BookingStatus.Kommende">Kommende</option>
                         <option value="@BookingStatus.Gennemført">Gennemført</option>
                     </select>
                 }
             </div>
+
 
 
             <div class="flex justify-end gap-2 pt-2">
@@ -229,6 +234,9 @@
     private int? deleteBookingId;
     private string selectedStatus = "all";
     private string? errorMessage;
+
+    private bool isOriginallyCompleted = false;
+
 
     private void OnDateChanged(ChangeEventArgs e)
     {
@@ -292,17 +300,25 @@
     private void NewBooking()
     {
         isEditing = false;
+
+        // Find fx første behandling som default
+        var førsteBehandling = DataService.Behandlinger.FirstOrDefault();
+
         editModel = new Booking
         {
-            Varighed = 30,
-            Status = BookingStatus.Kommende  // ny booking starter som Kommende
+            Status = BookingStatus.Kommende,  // ny booking starter som Kommende
+            BehandlingId = førsteBehandling?.BehandlingId ?? 0,
+            Varighed = førsteBehandling?.VarighedMinutter ?? 30  // fallback 30 hvis ingen behandling
         };
+
+        isOriginallyCompleted = false;
 
         datoInput = DateTime.Now.ToString("yyyy-MM-dd");
         tidInput = DateTime.Now.ToString("HH:mm");
 
         showDialog = true;
     }
+
 
     private async Task EditBooking(int id)
     {
@@ -320,6 +336,8 @@
             Status = b.Status,
             ValgtRabat = b.ValgtRabat
         };
+
+        isOriginallyCompleted = (b.Status == BookingStatus.Gennemført);
 
         datoInput = b.Tidspunkt.ToString("yyyy-MM-dd");
         tidInput = b.Tidspunkt.ToString("HH:mm");
@@ -353,6 +371,24 @@
             await JSRuntime.InvokeVoidAsync("alert", errorMessage);
         }
     }
+
+    private void OnBehandlingChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            editModel.BehandlingId = id;
+
+            var behandling = DataService.Behandlinger
+                .FirstOrDefault(b => b.BehandlingId == id);
+
+            if (behandling != null)
+            {
+                // Her tager vi varighed direkte fra behandlingen 💪
+                editModel.Varighed = behandling.VarighedMinutter;
+            }
+        }
+    }
+
 
     private void CloseDialog()
     {
@@ -421,14 +457,7 @@
                     booking.Tidspunkt
                 );
                 finalPrice = calc.FinalPrice;
-                if (calc.AppliedDiscount != null)
-                {
-                    originalPriceToShow = calc.OriginalPrice;
-                    hasRabat = true;
-                    rabatLabel = !string.IsNullOrWhiteSpace(calc.AppliedDiscount.Code)
-                        ? $"{calc.AppliedDiscount.Navn} ({calc.AppliedDiscount.Code})"
-                        : calc.AppliedDiscount.Navn;
-                }
+              
             }
         }
         else
@@ -441,14 +470,7 @@
                 booking.Tidspunkt
             );
             finalPrice = calc.FinalPrice;
-            if (calc.AppliedDiscount != null)
-            {
-                originalPriceToShow = calc.OriginalPrice;
-                hasRabat = true;
-                rabatLabel = !string.IsNullOrWhiteSpace(calc.AppliedDiscount.Code)
-                    ? $"{calc.AppliedDiscount.Navn} ({calc.AppliedDiscount.Code})"
-                    : calc.AppliedDiscount.Navn;
-            }
+        
         }
 
         __builder.OpenElement(0, "div");

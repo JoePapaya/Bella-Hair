@@ -87,33 +87,51 @@ public class BookingApplicationService : IBookingApplicationService
             );
         }
 
-        // 1) Valider den nye version af booking
+        // 1) Valider den nye version af booking (det er 'booking' fra UI)
         await _validator.ValidateAsync(booking);
 
         // 2) Gem ændringerne på booking
         await _data.UpdateBookingAsync(booking);
 
+        // 🔄 HENT booking igen EFTER vi har gemt,
+        // så vi er 100% sikre på at vi arbejder med den rigtige, opdaterede version
+        var opdateret = await _data.GetBookingAsync(booking.BookingId);
+        if (opdateret is null)
+            throw new InvalidOperationException("Booking kunne ikke genindlæses efter opdatering.");
+
         // 3) Hvis booking går fra IKKE-gennemført → Gennemført:
         if (!varAlleredeGennemført && bliverNuGennemført)
         {
+            // ekstra sikkerhed: tjek at den faktisk ER gennemført nu
+            if (opdateret.Status != BookingStatus.Gennemført)
+            {
+                // Hvis du vil kan du ændre teksten, men det her er en mere ærlig fejl end den du får nu
+                throw new InvalidOperationException(
+                    "Internt problem: booking er ikke gemt som 'Gennemført', så der kan ikke oprettes faktura."
+                );
+            }
+
             // → Opdater loyalty tier for kunden
-            var kunde = await _data.GetKundeAsync(booking.KundeId);
+            var kunde = await _data.GetKundeAsync(opdateret.KundeId);
             if (kunde is not null)
             {
                 await _loyaltyService.OpdaterLoyaltyTierAsync(kunde);
             }
 
-            // → Sørg for at der findes en faktura
-            var faktura = eksisterendeFaktura ?? await _data.GetFakturaForBookingAsync(booking.BookingId);
+            // → Sørg for at der findes en faktura (brug den OPDATERDE booking)
+            var faktura = eksisterendeFaktura
+                          ?? await _data.GetFakturaForBookingAsync(opdateret.BookingId);
+
             if (faktura == null)
             {
-                await _data.CreateFakturaAsync(booking);
+                await _data.CreateFakturaAsync(opdateret);
             }
         }
 
         // Hvis den fx bare får ny tid eller medarbejder, og status ikke ændrer sig
         // (eller forbliver Kommende), så rører vi ikke loyalty eller faktura.
     }
+
 
     // ---------- Delete ----------
 

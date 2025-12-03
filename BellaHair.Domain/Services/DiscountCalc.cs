@@ -25,19 +25,7 @@ public static class DiscountCalc
             };
         }
 
-        // 2) Hvis kunden har skrevet en specifik rabatkode / ID
-        if (!string.IsNullOrWhiteSpace(valgtRabatCode))
-        {
-            var medKode = kandidater
-                .Where(r =>
-                    (!string.IsNullOrWhiteSpace(r.Code) &&
-                     string.Equals(r.Code, valgtRabatCode, StringComparison.OrdinalIgnoreCase))
-                    || r.RabatId.ToString() == valgtRabatCode)
-                .ToList();
-
-            if (medKode.Any())
-                kandidater = medKode;
-        }
+     
 
         if (!kandidater.Any())
         {

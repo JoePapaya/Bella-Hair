@@ -27,8 +27,6 @@ builder.Services.AddScoped<ILoyaltyService, LoyaltyService>();
 
 
 
-
-
 // Blazor / Razor Components
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

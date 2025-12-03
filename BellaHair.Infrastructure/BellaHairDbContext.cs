@@ -81,7 +81,6 @@ public class BellaHairDbContext : DbContext
                 RequiredLoyaltyTier = null,
                 Percentage = null,
                 MinimumBeløb = null,
-                Code = null
             }
         );
 

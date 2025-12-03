@@ -122,9 +122,7 @@
                         <thead>
                             <tr class="border-b border-gray-200">
                                 <th class="text-left py-2 font-semibold text-gray-700">Ydelse</th>
-                                <th class="text-left py-2 font-semibold text-gray-700">Medarbejder</th>
                                 <th class="text-right py-2 font-semibold text-gray-700">Pris</th>
-                                <th class="text-right py-2 font-semibold text-gray-700">Rabat</th>
                                 <th class="text-right py-2 font-semibold text-gray-700">Beløb</th>
                             </tr>
                         </thead>
@@ -133,21 +131,8 @@
                                 <td class="py-2">
                                     @behandling?.Navn
                                 </td>
-                                <td class="py-2">
-                                    @medarbejder?.Navn
-                                </td>
                                 <td class="py-2 text-right">
                                     @faktura.Beløb kr
-                                </td>
-                                <td class="py-2 text-right">
-                                    @if (faktura.RabatBeløb > 0)
-                                    {
-                                        <span>-@faktura.RabatBeløb kr</span>
-                                    }
-                                    else
-                                    {
-                                        <span>-</span>
-                                    }
                                 </td>
                                 <td class="py-2 text-right">
                                     @faktura.TotalBeløb kr
@@ -156,13 +141,7 @@
                         </tbody>
                     </table>
 
-                    <!-- Rabattekst / note -->
-                    @if (!string.IsNullOrWhiteSpace(faktura.RabatTekst) && faktura.RabatBeløb > 0)
-                    {
-                        <p class="mt-3 text-xs text-green-700">
-                            Rabat anvendt: @faktura.RabatTekst
-                        </p>
-                    }
+                 
 
                     <!-- Total sektion -->
                     <div class="mt-6 flex justify-end">

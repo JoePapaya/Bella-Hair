@@ -60,10 +60,7 @@
                                     <div>
                                         <h3 class="text-gray-900 font-medium">@tier</h3>
                                         <p class="text-sm text-gray-600">@GetRabatLabel(rabat)</p>
-                                        @if (!string.IsNullOrWhiteSpace(rabat.Code))
-                                        {
-                                            <p class="text-xs text-gray-500">Kode: @rabat.Code</p>
-                                        }
+                                      
                                     </div>
                                 </div>
                                 <span class="@(active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700") px-2 py-1 text-xs rounded">
@@ -123,10 +120,7 @@
                                         <h3 class="text-gray-900 font-medium">@GetRabatLabel(rabat)</h3>
 
                                         <p class="text-xs text-gray-500">@rabat.Navn</p>
-                                        @if (!string.IsNullOrWhiteSpace(rabat.Code))
-                                        {
-                                            <p class="text-xs text-gray-500">Kode: @rabat.Code</p>
-                                        }
+                                       
                                     </div>
                                 </div>
 
@@ -200,6 +194,15 @@
                 </h2>
 
                 <div class="space-y-4">
+                    <!-- TYPE ØVERST -->
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Type</label>
+                        <select class="w-full border p-2 rounded" @bind="selectedType">
+                            <option value="Stamkunde">Stamkunderabat</option>
+                            <option value="Kampagne">Kampagnerabat</option>
+                        </select>
+                    </div>
+
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Navn</label>
                         <input class="w-full border p-2 rounded" @bind="current.Navn" />
@@ -209,11 +212,6 @@
                         <label class="block text-sm text-gray-600 mb-1">Beskrivelse</label>
                         <textarea class="w-full border p-2 rounded" rows="3"
                                   @bind="current.Description"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm text-gray-600 mb-1">Rabatkode (valgfri)</label>
-                        <input class="w-full border p-2 rounded" @bind="current.Code" />
                     </div>
 
                     <div>
@@ -242,30 +240,14 @@
                                @bind="current.MinimumBeløb" />
                     </div>
 
-                    <div>
-                        <label class="block text-sm text-gray-600 mb-1">Krævet loyalitet (stamkunde)</label>
-                        <select class="w-full border p-2 rounded"
-                                @bind="current.RequiredLoyaltyTier">
-                            <option value="">Ingen</option>
-                            <option>Bronze</option>
-                            <option>Sølv</option>
-                            <option>Guld</option>
-                        </select>
-                    </div>
-
-                    <div class="flex items-center gap-4">
+                    <div class="mt-2">
                         <label class="inline-flex items-center gap-2 text-sm text-gray-700">
                             <input type="checkbox" class="rounded" @bind="current.Aktiv" />
                             <span>Aktiv</span>
                         </label>
-
-                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                            <input type="checkbox" class="rounded" @bind="current.IsKampagne" />
-                            <span>Kampagnerabat</span>
-                        </label>
                     </div>
 
-                    @if (current.IsKampagne)
+                    @if (selectedType == "Kampagne")
                     {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -297,6 +279,7 @@
         </div>
     }
 
+
     <!-- Delete confirm -->
     @if (showDelete)
     {
@@ -326,6 +309,8 @@
     private string selectedKategori = "all";
 
     private List<Rabat> rabatter = new();
+
+    private string selectedType = "Stamkunde";
 
     // Stamkunde = har loyalitet og er ikke kampagne
     private IEnumerable<Rabat> StamkundeRabatter =>
@@ -416,9 +401,11 @@
             Aktiv = true,
             IsKampagne = false
         };
+        selectedType = "Stamkunde"; // default når man opretter ny
         percentageInput = 0;
         showDialog = true;
     }
+
 
     private void Edit(Rabat r)
     {
@@ -429,8 +416,7 @@
             Navn = r.Navn,
             Description = r.Description,
             Percentage = r.Percentage,
-            RequiredLoyaltyTier = r.RequiredLoyaltyTier,
-            Code = r.Code,
+            RequiredLoyaltyTier = r.RequiredLoyaltyTier, // bruges stadig i DB, men ikke i UI
             MinimumBeløb = r.MinimumBeløb,
             FixedAmount = r.FixedAmount,
             IsKampagne = r.IsKampagne,
@@ -440,8 +426,14 @@
         };
 
         percentageInput = (r.Percentage ?? 0) * 100;
+
+        // 👇 Dette er vigtigt:
+        selectedType = r.IsKampagne ? "Kampagne" : "Stamkunde";
+
         showDialog = true;
     }
+
+
 
     private void Close()
     {
@@ -461,6 +453,16 @@
             current.Percentage = null;
         }
 
+        // Sæt IsKampagne ud fra valgt type
+        current.IsKampagne = selectedType == "Kampagne";
+
+        // Hvis det IKKE er kampagne, så giver dato-range ikke mening → ryd dem
+        if (!current.IsKampagne)
+        {
+            current.StartDato = null;
+            current.SlutDato = null;
+        }
+
         if (string.IsNullOrWhiteSpace(current.Navn))
             return;
 
@@ -472,6 +474,8 @@
         showDialog = false;
         Load();
     }
+
+
 
     private void ConfirmDelete(Rabat r)
     {
@@ -518,4 +522,6 @@
 
         return "Ingen rabat";
     }
+
+
 }

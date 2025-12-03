@@ -16,7 +16,7 @@ public class Booking
     public int BehandlingId { get; set; }
     public int MedarbejderId { get; set; }
 
-    public DateTime Tidspunkt { get; set; }   // start tidspunkt
+    public DateTime Tidspunkt { get; set; }   // start tidspunkt    
     public int Varighed { get; set; }         // minutter
     public DateTime Start => Tidspunkt;
     public DateTime End => Tidspunkt.AddMinutes(Varighed);

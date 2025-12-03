@@ -205,14 +205,18 @@ public class EfDataService : IDataService
             if (existing == null)
                 throw new InvalidOperationException("Booking blev ikke fundet.");
 
-            // Opdater de relevante felter
+            // Opdater ALLE felter, der kan ændres fra UI
+            existing.KundeId = booking.KundeId;
             existing.MedarbejderId = booking.MedarbejderId;
-            existing.Tidspunkt = booking.Tidspunkt;
             existing.BehandlingId = booking.BehandlingId;
+            existing.Tidspunkt = booking.Tidspunkt;
+            existing.Varighed = booking.Varighed;
+            existing.Status = booking.Status;
+            existing.ValgtRabat = booking.ValgtRabat;
 
-            // Før du gemmer → tjek om tidpunktet allerede er taget
+            // Tjek om tidspunktet allerede er taget for den valgte medarbejder
             bool overlap = await db.Bookinger.AnyAsync(b =>
-                b.BookingId != booking.BookingId && // Ignorer dig selv
+                b.BookingId != booking.BookingId &&      // Ignorér dig selv
                 b.MedarbejderId == existing.MedarbejderId &&
                 b.Tidspunkt == existing.Tidspunkt);
 
@@ -222,8 +226,7 @@ public class EfDataService : IDataService
                     "Medarbejderen er allerede booket på dette tidspunkt.");
             }
 
-            // Ingen overlap → opdater booking
-            db.Bookinger.Update(existing);
+            // Gem ændringer
             await db.SaveChangesAsync();
 
             // Commit transaktion
@@ -409,13 +412,7 @@ public class EfDataService : IDataService
         if (rabatBeløb < 0) rabatBeløb = 0; // safety
 
         string? rabatTekst = null;
-        if (discountResult.AppliedDiscount is not null)
-        {
-            var d = discountResult.AppliedDiscount;
-            rabatTekst = !string.IsNullOrWhiteSpace(d.Code)
-                ? $"{d.Navn} ({d.Code})"
-                : d.Navn;
-        }
+       
 
         var faktura = new Faktura
         {
