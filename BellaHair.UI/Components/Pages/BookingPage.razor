@@ -319,6 +319,35 @@
         showDialog = true;
     }
 
+    private string GetDiscountLabel(DiscountResult calc, Kunde? kunde)
+    {
+        var rabat = calc.AppliedDiscount;
+        if (rabat is null)
+            return "Rabat";
+
+        // Kampagnerabat → vis altid navnet (fx "Nytårskampagne")
+        if (rabat.IsKampagne)
+        {
+            return string.IsNullOrWhiteSpace(rabat.Navn)
+                ? "Rabat"
+                : rabat.Navn;
+        }
+
+        // Stamkunderabat → vis kun navnet hvis kundens LoyaltyTier matcher
+        var tier = kunde?.LoyaltyTier;
+
+        if (!string.IsNullOrWhiteSpace(tier) &&
+            !string.IsNullOrWhiteSpace(rabat.Navn) &&
+            rabat.Navn.Contains(tier, StringComparison.OrdinalIgnoreCase))
+        {
+            // Fx kunde.LoyaltyTier = "Bronze", rabat.Navn = "Stamkunde Bronze"
+            return rabat.Navn;
+        }
+
+        // Kunden er ikke den tier → vis ikke Bronze/Sølv/Guld-navnet, kun generisk
+        return "Rabat";
+    }
+
 
     private async Task EditBooking(int id)
     {
@@ -438,6 +467,7 @@
             if (faktura is not null)
             {
                 finalPrice = faktura.TotalBeløb;
+
                 if (faktura.RabatBeløb > 0)
                 {
                     originalPriceToShow = faktura.Beløb;
@@ -456,8 +486,16 @@
                     null,
                     booking.Tidspunkt
                 );
+
                 finalPrice = calc.FinalPrice;
-              
+
+                if (calc.AppliedDiscount is not null && calc.FinalPrice < calc.OriginalPrice)
+                {
+                    hasRabat = true;
+                    originalPriceToShow = calc.OriginalPrice;
+                    rabatLabel = GetDiscountLabel(calc, kunde);
+                }
+
             }
         }
         else
@@ -469,9 +507,21 @@
                 null,
                 booking.Tidspunkt
             );
+
             finalPrice = calc.FinalPrice;
-        
+
+            // Hvis der faktisk er en rabat
+            if (calc.AppliedDiscount is not null && calc.FinalPrice < calc.OriginalPrice)
+            {
+                hasRabat = true;
+                originalPriceToShow = calc.OriginalPrice;
+
+                // Brug helper → viser kun Stamkunde Bronze/Sølv/Guld hvis kunde faktisk er den tier
+                rabatLabel = GetDiscountLabel(calc, kunde);
+            }
+
         }
+
 
         __builder.OpenElement(0, "div");
         __builder.AddAttribute(1, "class", "flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors");

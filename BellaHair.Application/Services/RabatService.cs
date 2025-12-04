@@ -19,27 +19,19 @@ public class RabatService : IRabatService
         string? valgtRabatCode,
         DateTime? bookingDate = null)
     {
-        // Brug booking-datoen hvis vi får den, ellers "i dag"
         var dato = bookingDate?.Date ?? DateTime.Today;
 
-        // Start med alle rabatter fra databasen
         var alleRabatter = _dataService.Rabatter.AsEnumerable();
 
-        // Kun aktive rabatter
+        // Kun aktive
         alleRabatter = alleRabatter.Where(r => r.Aktiv);
 
         // Respekter kampagneperioder
         alleRabatter = alleRabatter.Where(r => r.IsWithinCampaignPeriod(dato));
 
-        // Respekter evt. loyalitetskrav
-        alleRabatter = alleRabatter.Where(r =>
-            string.IsNullOrWhiteSpace(r.RequiredLoyaltyTier) ||
-            string.Equals(
-                kunde?.LoyaltyTier,
-                r.RequiredLoyaltyTier,
-                StringComparison.OrdinalIgnoreCase));
+        // 🔐 NYT: filtrér væk stamkunde-rabatter som kunden IKKE har tier til
+        alleRabatter = alleRabatter.Where(r => DiscountCalc.IsRabatAllowedForKunde(r, kunde));
 
-        // Lad din eksisterende DiscountCalc-logik finde den bedste
         return DiscountCalc.CalculateBestDiscount(
             originalPrice,
             kunde,
@@ -47,25 +39,16 @@ public class RabatService : IRabatService
             alleRabatter.ToList());
     }
 
+
     public IEnumerable<Rabat> GetTilgængeligeRabatterForKunde(Kunde? kunde)
     {
         var dato = DateTime.Today;
 
         var rabatter = _dataService.Rabatter.AsEnumerable();
 
-        // Kun aktive rabatter
         rabatter = rabatter.Where(r => r.Aktiv);
-
-        // Respekter kampagneperioder ift. "i dag"
         rabatter = rabatter.Where(r => r.IsWithinCampaignPeriod(dato));
-
-        // Loyalitetskrav
-        rabatter = rabatter.Where(r =>
-            string.IsNullOrWhiteSpace(r.RequiredLoyaltyTier) ||
-            string.Equals(
-                kunde?.LoyaltyTier,
-                r.RequiredLoyaltyTier,
-                StringComparison.OrdinalIgnoreCase));
+        rabatter = rabatter.Where(r => r.IsEligibleFor(kunde));
 
         return rabatter.OrderBy(r => r.Navn);
     }

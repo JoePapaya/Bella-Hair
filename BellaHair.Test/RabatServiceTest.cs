@@ -23,8 +23,8 @@ public class RabatServiceTest
 
         var rabatter = new List<Rabat>
         {
-            new Rabat { Navn = "Bronze", Percentage = 0.05m, RequiredLoyaltyTier = "Bronze" },
-            new Rabat { Navn = "Guld", Percentage = 0.15m, RequiredLoyaltyTier = "Guld" }
+            new Rabat { Navn = "Bronze", Percentage = 0.05m  },
+            new Rabat { Navn = "Guld", Percentage = 0.15m }
         };
 
         // Act
@@ -50,7 +50,7 @@ public class RabatServiceTest
 
         var rabatter = new List<Rabat>
         {
-            new Rabat { Navn = "Guld", Percentage = 0.20m, RequiredLoyaltyTier = "Guld" }
+            new Rabat { Navn = "Guld", Percentage = 0.20m}
         };
 
         // Act

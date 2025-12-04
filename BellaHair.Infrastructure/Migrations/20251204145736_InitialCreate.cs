@@ -73,7 +73,6 @@ namespace BellaHair.Infrastructure.Migrations
                     RabatId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Navn = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Code = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Percentage = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: true),
                     FixedAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     RequiredLoyaltyTier = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -165,11 +164,11 @@ namespace BellaHair.Infrastructure.Migrations
                 columns: new[] { "BehandlingId", "Navn", "Pris", "Type", "VarighedMinutter" },
                 values: new object[,]
                 {
-                    { 1, "Standard klip", 100m, "", 0 },
-                    { 2, "Herreklip", 80m, "", 0 },
-                    { 3, "Farve", 150m, "", 0 },
-                    { 4, "Balayage", 250m, "", 0 },
-                    { 5, "Kurbehandling", 60m, "", 0 }
+                    { 1, "Standard klip", 100m, "Klip", 30 },
+                    { 2, "Herreklip", 80m, "Klip", 25 },
+                    { 3, "Farve", 150m, "Farve", 60 },
+                    { 4, "Balayage", 250m, "Farve", 120 },
+                    { 5, "Kurbehandling", 60m, "Kur", 30 }
                 });
 
             migrationBuilder.InsertData(
@@ -177,9 +176,9 @@ namespace BellaHair.Infrastructure.Migrations
                 columns: new[] { "KundeId", "Adresse", "BesøgAntal", "By", "Email", "Fødselsdag", "LoyaltyTier", "Navn", "Points", "Postnr", "Telefon" },
                 values: new object[,]
                 {
-                    { 1, "", 0, "", "", new DateOnly(1, 1, 1), null, "Kendrick", 0, "", "" },
-                    { 2, "", 0, "", "", new DateOnly(1, 1, 1), null, "J. Cole", 0, "", "" },
-                    { 3, "", 0, "", "", new DateOnly(1, 1, 1), null, "Drake", 0, "", "" }
+                    { 1, "Comptonvej 1", 0, "København Ø", "kendrick@example.com", new DateOnly(1987, 6, 17), null, "Kendrick", 0, "2100", "12345678" },
+                    { 2, "Dreamvillegade 2", 0, "Aarhus C", "jcole@example.com", new DateOnly(1985, 1, 28), null, "J. Cole", 0, "8000", "22334455" },
+                    { 3, "OVO Allé 3", 0, "Odense C", "drake@example.com", new DateOnly(1986, 10, 24), null, "Drake", 0, "5000", "99887766" }
                 });
 
             migrationBuilder.InsertData(
@@ -187,20 +186,21 @@ namespace BellaHair.Infrastructure.Migrations
                 columns: new[] { "MedarbejderId", "ErFreelancer", "Kompetencer", "Navn" },
                 values: new object[,]
                 {
-                    { 1, false, "[]", "Mia" },
-                    { 2, false, "[]", "Sara" },
-                    { 3, false, "[]", "Jonas" }
+                    { 1, false, "[]", "George Pikins" },
+                    { 2, false, "[]", "Dak Prescot" },
+                    { 3, false, "[]", "CeeDee Lamb" }
                 });
 
             migrationBuilder.InsertData(
                 table: "Rabatter",
-                columns: new[] { "RabatId", "Aktiv", "Code", "Description", "FixedAmount", "IsKampagne", "MinimumBeløb", "Navn", "Percentage", "RequiredLoyaltyTier", "SlutDato", "StartDato" },
+                columns: new[] { "RabatId", "Aktiv", "Description", "FixedAmount", "IsKampagne", "MinimumBeløb", "Navn", "Percentage", "RequiredLoyaltyTier", "SlutDato", "StartDato" },
                 values: new object[,]
                 {
-                    { 1001, true, null, "5% rabat til Bronze-stamkunder", null, false, null, "Stamkunde Bronze", 0.05m, "Bronze", null, null },
-                    { 1002, true, null, "10% rabat til Sølv-stamkunder", null, false, null, "Stamkunde Sølv", 0.10m, "Sølv", null, null },
-                    { 1003, true, null, "15% rabat til Guld-stamkunder", null, false, null, "Stamkunde Guld", 0.15m, "Guld", null, null },
-                    { 2001, true, null, "Julekampagne: 50 kr rabat på alle behandlinger", 50m, true, null, "Julekampagne", null, null, new DateTime(2025, 12, 24, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 12, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) }
+                    { 1001, true, "5% rabat stamkunder med 5 til 9 besøg", null, false, null, "Stamkunde Bronze", 0.05m, "Bronze", null, null },
+                    { 1002, true, "10% rabat til stamkunder med 10 til 19 besøg", null, false, null, "Stamkunde Sølv", 0.10m, "Sølv", null, null },
+                    { 1003, true, "15% rabat til stamkunder med 20 eller flere besøg", null, false, null, "Stamkunde Guld", 0.15m, "Guld", null, null },
+                    { 2001, true, "Julekampagne: 50 kr rabat på alle behandlinger", 50m, true, null, "Julekampagne", null, null, new DateTime(2025, 12, 24, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 12, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
+                    { 2002, true, "5% rabat i januar", null, true, null, "Nytårsrabat", 0.05m, null, new DateTime(2026, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) }
                 });
 
             migrationBuilder.CreateIndex(

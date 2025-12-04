@@ -393,12 +393,8 @@ public class EfDataService : IDataService
 
         var kandidater = alleRabatter
             .Where(r => r.IsWithinCampaignPeriod(dato))
-            .Where(r =>
-                string.IsNullOrWhiteSpace(r.RequiredLoyaltyTier) ||
-                string.Equals(
-                    kunde?.LoyaltyTier,
-                    r.RequiredLoyaltyTier,
-                    StringComparison.OrdinalIgnoreCase))
+            // 🔐 kun rabatter, der giver mening for den kunde (tier)
+            .Where(r => DiscountCalc.IsRabatAllowedForKunde(r, kunde))
             .ToList();
 
         // Beregn bedste rabat
@@ -411,8 +407,31 @@ public class EfDataService : IDataService
         var rabatBeløb = discountResult.OriginalPrice - discountResult.FinalPrice;
         if (rabatBeløb < 0) rabatBeløb = 0; // safety
 
-        string? rabatTekst = null;
-       
+        // 🔹 Tekst til rabatten – brug navnet hvis det findes
+        string? rabatTekst = discountResult.AppliedDiscount?.Navn;
+
+        var applied = discountResult.AppliedDiscount;
+
+        if (applied is not null && rabatBeløb > 0)
+        {
+            if (!string.IsNullOrWhiteSpace(applied.Navn))
+            {
+                // Fx "Nytårsrabat" eller "Stamkunde Guld"
+                rabatTekst = applied.Navn;
+            }
+            else if (applied.Percentage.HasValue && applied.Percentage.Value > 0)
+            {
+                rabatTekst = $"{applied.Percentage.Value * 100:0.#}% rabat";
+            }
+            else if (applied.FixedAmount.HasValue && applied.FixedAmount.Value > 0)
+            {
+                rabatTekst = $"{applied.FixedAmount.Value:0.##} kr rabat";
+            }
+            else
+            {
+                rabatTekst = "Rabat";
+            }
+        }
 
         var faktura = new Faktura
         {

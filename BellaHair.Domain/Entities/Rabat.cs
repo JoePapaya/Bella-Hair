@@ -8,8 +8,6 @@ public class Rabat
 
     public string Navn { get; set; } = string.Empty;
 
-    // Kode kunden kan skrive (valgfri)
-
     // Procent-rabat gemt som 0–1 (fx 0.10 = 10%).
     public decimal? Percentage { get; set; }
 
@@ -17,6 +15,7 @@ public class Rabat
     public decimal? FixedAmount { get; set; }
 
     // Hvilket loyalitetsniveau der kræves (Bronze/Sølv/Guld) – som tekst
+    // null = ingen krav (gælder for alle)
     public string? RequiredLoyaltyTier { get; set; }
 
     // Aktiver/deaktiver rabatten
@@ -47,22 +46,35 @@ public class Rabat
         return true;
     }
 
+    // Tjekker om denne rabat må bruges for en given kunde
+    public bool IsEligibleFor(Kunde? kunde)
+    {
+        // Ingen krav → alle må få den
+        if (string.IsNullOrWhiteSpace(RequiredLoyaltyTier))
+            return true;
+
+        // Rabatten kræver bestemt tier, men der er ingen kunde
+        if (kunde == null || string.IsNullOrWhiteSpace(kunde.LoyaltyTier))
+            return false;
+
+        return string.Equals(
+            kunde.LoyaltyTier,
+            RequiredLoyaltyTier,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
     public decimal Apply(decimal originalPrice)
     {
-        // Brug procent KUN hvis den faktisk er > 0
         if (Percentage.HasValue && Percentage.Value > 0)
         {
-            // Percentage gemmes som 0.10 for 10%
             return originalPrice * (1 - Percentage.Value);
         }
 
-        // Ellers prøver vi med fast beløb
         if (FixedAmount.HasValue && FixedAmount.Value > 0)
         {
             return Math.Max(0, originalPrice - FixedAmount.Value);
         }
 
-        // Hvis hverken procent eller fast beløb giver mening → ingen rabat
         return originalPrice;
     }
 }

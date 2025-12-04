@@ -42,32 +42,35 @@ public class BellaHairDbContext : DbContext
             {
                 RabatId = 1001,
                 Navn = "Stamkunde Bronze",
-                Description = "5% rabat til Bronze-stamkunder",
+                Description = "5% rabat stamkunder med 5 til 9 besøg",
                 Percentage = 0.05m,
-                RequiredLoyaltyTier = "Bronze",
                 Aktiv = true,
-                IsKampagne = false
+                IsKampagne = false,
+                RequiredLoyaltyTier = "Bronze"
+
             },
             new Rabat
             {
                 RabatId = 1002,
                 Navn = "Stamkunde Sølv",
-                Description = "10% rabat til Sølv-stamkunder",
+                Description = "10% rabat til stamkunder med 10 til 19 besøg",
                 Percentage = 0.10m,
-                RequiredLoyaltyTier = "Sølv",
                 Aktiv = true,
-                IsKampagne = false
+                IsKampagne = false,
+                RequiredLoyaltyTier = "Sølv"
+
             },
-            new Rabat
-            {
-                RabatId = 1003,
-                Navn = "Stamkunde Guld",
-                Description = "15% rabat til Guld-stamkunder",
-                Percentage = 0.15m,
-                RequiredLoyaltyTier = "Guld",
-                Aktiv = true,
-                IsKampagne = false
-            },
+          new Rabat
+          {
+              RabatId = 1003,
+              Navn = "Stamkunde Guld",
+              Description = "15% rabat til stamkunder med 20 eller flere besøg",
+              Percentage = 0.15m,
+              Aktiv = true,
+              IsKampagne = false,
+              RequiredLoyaltyTier = "Guld"
+          },
+
             new Rabat
             {
                 RabatId = 2001,
@@ -78,10 +81,26 @@ public class BellaHairDbContext : DbContext
                 IsKampagne = true,
                 StartDato = new DateTime(DateTime.Now.Year, 12, 1),
                 SlutDato = new DateTime(DateTime.Now.Year, 12, 24),
-                RequiredLoyaltyTier = null,
                 Percentage = null,
                 MinimumBeløb = null,
+                RequiredLoyaltyTier = null
+
+            },
+
+            new Rabat
+            {
+                RabatId = 2002,
+                Navn = "Nytårsrabat",
+                Description = "5% rabat i januar",
+                Aktiv = true,
+                IsKampagne = true,
+                StartDato = new DateTime(2026, 1, 1),
+                SlutDato = new DateTime(2026, 1, 31),
+                Percentage = 0.05m,
+                MinimumBeløb = null,
+                RequiredLoyaltyTier = null
             }
+
         );
 
         // ---------- Faktura ----------
@@ -115,17 +134,35 @@ public class BellaHairDbContext : DbContext
             new Kunde
             {
                 KundeId = 1,
-                Navn = "Kendrick"
+                Navn = "Kendrick",
+                Email = "kendrick@example.com",
+                Telefon = "12345678",
+                Adresse = "Comptonvej 1",
+                Postnr = "2100",
+                By = "København Ø",
+                Fødselsdag = new DateOnly(1987, 6, 17)
             },
             new Kunde
             {
                 KundeId = 2,
-                Navn = "J. Cole"
+                Navn = "J. Cole",
+                Email = "jcole@example.com",
+                Telefon = "22334455",
+                Adresse = "Dreamvillegade 2",
+                Postnr = "8000",
+                By = "Aarhus C",
+                Fødselsdag = new DateOnly(1985, 1, 28)
             },
             new Kunde
             {
                 KundeId = 3,
-                Navn = "Drake"
+                Navn = "Drake",
+                Email = "drake@example.com",
+                Telefon = "99887766",
+                Adresse = "OVO Allé 3",
+                Postnr = "5000",
+                By = "Odense C",
+                Fødselsdag = new DateOnly(1986, 10, 24)
             }
         );
 
@@ -134,17 +171,17 @@ public class BellaHairDbContext : DbContext
             new Medarbejder
             {
                 MedarbejderId = 1,
-                Navn = "Mia"
+                Navn = "George Pikins"
             },
             new Medarbejder
             {
                 MedarbejderId = 2,
-                Navn = "Sara"
+                Navn = "Dak Prescot"
             },
             new Medarbejder
             {
                 MedarbejderId = 3,
-                Navn = "Jonas"
+                Navn = "CeeDee Lamb"
             }
         );
 
@@ -154,31 +191,41 @@ public class BellaHairDbContext : DbContext
             {
                 BehandlingId = 1,
                 Navn = "Standard klip",
-                Pris = 100m
+                Pris = 100m,
+                Type = "Klip",
+                VarighedMinutter = 30
             },
             new Behandling
             {
                 BehandlingId = 2,
                 Navn = "Herreklip",
-                Pris = 80m
+                Pris = 80m,
+                Type = "Klip",
+                VarighedMinutter = 25
             },
             new Behandling
             {
                 BehandlingId = 3,
                 Navn = "Farve",
-                Pris = 150m
+                Pris = 150m,
+                Type = "Farve",
+                VarighedMinutter = 60
             },
             new Behandling
             {
                 BehandlingId = 4,
                 Navn = "Balayage",
-                Pris = 250m
+                Pris = 250m,
+                Type = "Farve",
+                VarighedMinutter = 120
             },
             new Behandling
             {
                 BehandlingId = 5,
                 Navn = "Kurbehandling",
-                Pris = 60m
+                Pris = 60m,
+                Type = "Kur",
+                VarighedMinutter = 30
             }
         );
 

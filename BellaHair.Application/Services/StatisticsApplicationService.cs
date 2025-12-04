@@ -109,13 +109,12 @@ public class StatisticsApplicationService : IStatisticsApplicationService
             Kampagner = BuildBreakdown("Kampagner", kampagneRows)
         };
     }
-
     // Lille record til at holde pr. booking-data
     private sealed record BookingDiscountRow(decimal BasePrice, decimal Discount);
 
-    // Stamkunderabat: kræver loyalitet, ikke kampagne
+    // Stamkunderabat: alt der IKKE er kampagne
     private static bool IsStamkundeRabat(Rabat r) =>
-        !r.IsKampagne && !string.IsNullOrWhiteSpace(r.RequiredLoyaltyTier);
+        !r.IsKampagne;
 
     // Kampagner: baseret på IsKampagne-flag
     private static bool IsKampagneRabat(Rabat r) =>

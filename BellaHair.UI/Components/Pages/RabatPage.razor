@@ -45,7 +45,6 @@
                 @foreach (var rabat in StamkundeRabatter)
                 {
                     var active = IsActive(rabat);
-                    var tier = rabat.RequiredLoyaltyTier ?? GetLoyaltyTier(rabat.Percentage ?? 0);
                     var procent = (rabat.Percentage ?? 0) * 100; // 0.05 -> 5
 
                     <div class="bg-white rounded-lg border @(active ? "border-green-300" : "border-gray-200") hover:shadow-lg transition-shadow">
@@ -58,7 +57,9 @@
                                         </span>
                                     </div>
                                     <div>
-                                        <h3 class="text-gray-900 font-medium">@tier</h3>
+                                        <h3 class="text-gray-900 font-medium">
+                                            @GetLoyaltyTier(rabat.Percentage ?? 0)
+                                        </h3>
                                         <p class="text-sm text-gray-600">@GetRabatLabel(rabat)</p>
                                       
                                     </div>
@@ -312,9 +313,12 @@
 
     private string selectedType = "Stamkunde";
 
-    // Stamkunde = har loyalitet og er ikke kampagne
+
+    // Stamkunde = har IKKE IsKampagne
     private IEnumerable<Rabat> StamkundeRabatter =>
-        rabatter.Where(r => !r.IsKampagne && !string.IsNullOrWhiteSpace(r.RequiredLoyaltyTier));
+        rabatter.Where(r => !r.IsKampagne);
+
+
 
     // Kampagne = IsKampagne == true
     private IEnumerable<Rabat> KampagneRabatter =>
@@ -346,20 +350,9 @@
 
     private bool IsActive(Rabat rabat)
     {
-        if (!rabat.Aktiv)
-            return false;
-
-        if (rabat.IsKampagne)
-        {
-            var today = DateTime.Today;
-            if (rabat.StartDato.HasValue && today < rabat.StartDato.Value.Date)
-                return false;
-            if (rabat.SlutDato.HasValue && today > rabat.SlutDato.Value.Date)
-                return false;
-        }
-
-        return true;
+        return rabat.Aktiv;
     }
+
 
     private string AsPercent(decimal? pct)
     {
@@ -416,7 +409,6 @@
             Navn = r.Navn,
             Description = r.Description,
             Percentage = r.Percentage,
-            RequiredLoyaltyTier = r.RequiredLoyaltyTier, // bruges stadig i DB, men ikke i UI
             MinimumBeløb = r.MinimumBeløb,
             FixedAmount = r.FixedAmount,
             IsKampagne = r.IsKampagne,

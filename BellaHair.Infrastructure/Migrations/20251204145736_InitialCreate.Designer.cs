@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
-    [Migration("20251203113647_InitialCreate")]
+    [Migration("20251204145736_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -58,40 +58,40 @@ namespace BellaHair.Infrastructure.Migrations
                             BehandlingId = 1,
                             Navn = "Standard klip",
                             Pris = 100m,
-                            Type = "",
-                            VarighedMinutter = 0
+                            Type = "Klip",
+                            VarighedMinutter = 30
                         },
                         new
                         {
                             BehandlingId = 2,
                             Navn = "Herreklip",
                             Pris = 80m,
-                            Type = "",
-                            VarighedMinutter = 0
+                            Type = "Klip",
+                            VarighedMinutter = 25
                         },
                         new
                         {
                             BehandlingId = 3,
                             Navn = "Farve",
                             Pris = 150m,
-                            Type = "",
-                            VarighedMinutter = 0
+                            Type = "Farve",
+                            VarighedMinutter = 60
                         },
                         new
                         {
                             BehandlingId = 4,
                             Navn = "Balayage",
                             Pris = 250m,
-                            Type = "",
-                            VarighedMinutter = 0
+                            Type = "Farve",
+                            VarighedMinutter = 120
                         },
                         new
                         {
                             BehandlingId = 5,
                             Navn = "Kurbehandling",
                             Pris = 60m,
-                            Type = "",
-                            VarighedMinutter = 0
+                            Type = "Kur",
+                            VarighedMinutter = 30
                         });
                 });
 
@@ -238,41 +238,41 @@ namespace BellaHair.Infrastructure.Migrations
                         new
                         {
                             KundeId = 1,
-                            Adresse = "",
+                            Adresse = "Comptonvej 1",
                             BesøgAntal = 0,
-                            By = "",
-                            Email = "",
-                            Fødselsdag = new DateOnly(1, 1, 1),
+                            By = "København Ø",
+                            Email = "kendrick@example.com",
+                            Fødselsdag = new DateOnly(1987, 6, 17),
                             Navn = "Kendrick",
                             Points = 0,
-                            Postnr = "",
-                            Telefon = ""
+                            Postnr = "2100",
+                            Telefon = "12345678"
                         },
                         new
                         {
                             KundeId = 2,
-                            Adresse = "",
+                            Adresse = "Dreamvillegade 2",
                             BesøgAntal = 0,
-                            By = "",
-                            Email = "",
-                            Fødselsdag = new DateOnly(1, 1, 1),
+                            By = "Aarhus C",
+                            Email = "jcole@example.com",
+                            Fødselsdag = new DateOnly(1985, 1, 28),
                             Navn = "J. Cole",
                             Points = 0,
-                            Postnr = "",
-                            Telefon = ""
+                            Postnr = "8000",
+                            Telefon = "22334455"
                         },
                         new
                         {
                             KundeId = 3,
-                            Adresse = "",
+                            Adresse = "OVO Allé 3",
                             BesøgAntal = 0,
-                            By = "",
-                            Email = "",
-                            Fødselsdag = new DateOnly(1, 1, 1),
+                            By = "Odense C",
+                            Email = "drake@example.com",
+                            Fødselsdag = new DateOnly(1986, 10, 24),
                             Navn = "Drake",
                             Points = 0,
-                            Postnr = "",
-                            Telefon = ""
+                            Postnr = "5000",
+                            Telefon = "99887766"
                         });
                 });
 
@@ -305,21 +305,21 @@ namespace BellaHair.Infrastructure.Migrations
                             MedarbejderId = 1,
                             ErFreelancer = false,
                             Kompetencer = "[]",
-                            Navn = "Mia"
+                            Navn = "George Pikins"
                         },
                         new
                         {
                             MedarbejderId = 2,
                             ErFreelancer = false,
                             Kompetencer = "[]",
-                            Navn = "Sara"
+                            Navn = "Dak Prescot"
                         },
                         new
                         {
                             MedarbejderId = 3,
                             ErFreelancer = false,
                             Kompetencer = "[]",
-                            Navn = "Jonas"
+                            Navn = "CeeDee Lamb"
                         });
                 });
 
@@ -333,9 +333,6 @@ namespace BellaHair.Infrastructure.Migrations
 
                     b.Property<bool>("Aktiv")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Code")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -376,7 +373,7 @@ namespace BellaHair.Infrastructure.Migrations
                         {
                             RabatId = 1001,
                             Aktiv = true,
-                            Description = "5% rabat til Bronze-stamkunder",
+                            Description = "5% rabat stamkunder med 5 til 9 besøg",
                             IsKampagne = false,
                             Navn = "Stamkunde Bronze",
                             Percentage = 0.05m,
@@ -386,7 +383,7 @@ namespace BellaHair.Infrastructure.Migrations
                         {
                             RabatId = 1002,
                             Aktiv = true,
-                            Description = "10% rabat til Sølv-stamkunder",
+                            Description = "10% rabat til stamkunder med 10 til 19 besøg",
                             IsKampagne = false,
                             Navn = "Stamkunde Sølv",
                             Percentage = 0.10m,
@@ -396,7 +393,7 @@ namespace BellaHair.Infrastructure.Migrations
                         {
                             RabatId = 1003,
                             Aktiv = true,
-                            Description = "15% rabat til Guld-stamkunder",
+                            Description = "15% rabat til stamkunder med 20 eller flere besøg",
                             IsKampagne = false,
                             Navn = "Stamkunde Guld",
                             Percentage = 0.15m,
@@ -412,6 +409,17 @@ namespace BellaHair.Infrastructure.Migrations
                             Navn = "Julekampagne",
                             SlutDato = new DateTime(2025, 12, 24, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             StartDato = new DateTime(2025, 12, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            RabatId = 2002,
+                            Aktiv = true,
+                            Description = "5% rabat i januar",
+                            IsKampagne = true,
+                            Navn = "Nytårsrabat",
+                            Percentage = 0.05m,
+                            SlutDato = new DateTime(2026, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            StartDato = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
