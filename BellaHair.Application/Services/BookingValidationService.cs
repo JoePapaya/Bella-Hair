@@ -35,6 +35,23 @@ namespace BellaHair.Application.Services
                     throw new InvalidOperationException("Der findes allerede en booking i dette tidsinterval.");
             }
 
+            if (booking.KundeId != 0)
+            {
+                var eksisterendeKundeBookinger = _data.Bookinger
+                    .Where(b => b.KundeId == booking.KundeId &&
+                                b.BookingId != booking.BookingId);
+
+                foreach (var b in eksisterendeKundeBookinger)
+                {
+                    bool overlapper =
+                        booking.Start < b.End &&
+                        booking.End > b.Start;
+
+                    if (overlapper)
+                        throw new InvalidOperationException($"Kunden har allerede en anden booking fra {b.Start:t} til {b.End:t}.");
+                }
+            }
+
             return Task.CompletedTask;
         }
     }
