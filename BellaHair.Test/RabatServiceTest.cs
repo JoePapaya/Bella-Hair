@@ -28,7 +28,7 @@ public class RabatServiceTest
         };
 
         // Act
-        var result = DiscountCalc.CalculateBestDiscount(price, kunde, null, rabatter);
+        var result = DiscountCalc.CalculateBestDiscount(price, kunde, rabatter);
 
         // Assert
         Assert.That(result.AppliedDiscount, Is.Not.Null);
@@ -54,7 +54,7 @@ public class RabatServiceTest
         };
 
         // Act
-        var result = DiscountCalc.CalculateBestDiscount(price, kunde, null, rabatter);
+        var result = DiscountCalc.CalculateBestDiscount(price, kunde, rabatter);
 
         // Assert
         Assert.That(result.AppliedDiscount, Is.Null);
@@ -80,11 +80,10 @@ public class RabatServiceTest
         };
 
         // Act
-        var result = DiscountCalc.CalculateBestDiscount(price, kunde, "VIP10", rabatter);
+        var result = DiscountCalc.CalculateBestDiscount(price, kunde, rabatter);
 
         // Assert
         Assert.That(result.AppliedDiscount, Is.Not.Null);
-        Assert.That(result.AppliedDiscount!.Navn, Is.EqualTo("VIP10"));
         Assert.That(result.FinalPrice, Is.EqualTo(90m));
     }
 }

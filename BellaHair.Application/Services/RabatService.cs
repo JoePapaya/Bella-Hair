@@ -1,6 +1,7 @@
 ﻿using BellaHair.Application.Interfaces;
 using BellaHair.Domain.Entities;
 using BellaHair.Domain.Services;
+using BellaHair.Domain.Services.DiscountStrategies;
 
 namespace BellaHair.Application.Services;
 
@@ -29,13 +30,12 @@ public class RabatService : IRabatService
         // Respekter kampagneperioder
         alleRabatter = alleRabatter.Where(r => r.IsWithinCampaignPeriod(dato));
 
-        // 🔐 NYT: filtrér væk stamkunde-rabatter som kunden IKKE har tier til
-        alleRabatter = alleRabatter.Where(r => DiscountCalc.IsRabatAllowedForKunde(r, kunde));
+        //  NYT: filtrér væk stamkunde-rabatter som kunden IKKE har tier til
+        alleRabatter = alleRabatter.Where(r => DiscountCalc.IsRabatAllowedForKunde(kunde, r));
 
         return DiscountCalc.CalculateBestDiscount(
             originalPrice,
             kunde,
-            valgtRabatCode,
             alleRabatter.ToList());
     }
 
