@@ -4,7 +4,7 @@ namespace BellaHair.Domain.Services;
 
 public static class DiscountCalc
 {
-    // 👇 NY: fælles regel for om en rabat må bruges til en kunde
+    // Fælles regel for om en rabat må bruges til en kunde
     public static bool IsRabatAllowedForKunde(Rabat rabat, Kunde? kunde)
     {
         // Stamkunde-rabatter: vi genkender dem på navnet
@@ -78,7 +78,7 @@ public static class DiscountCalc
             }
             else if (final == bestFinal && bestRabat is not null)
             {
-                // 🔁 Tie-breaker:
+                // Tie-breaker:
                 // Hvis samme slutpris: stamkunde-rabat (IsKampagne == false) vinder over kampagne
                 if (!rabat.IsKampagne && bestRabat.IsKampagne)
                 {
