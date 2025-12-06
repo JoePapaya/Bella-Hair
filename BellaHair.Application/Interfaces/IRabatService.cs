@@ -1,4 +1,4 @@
-﻿using BellaHair.Domain.Entities;
+﻿    using BellaHair.Domain.Entities;
 
 namespace BellaHair.Application.Interfaces;
 

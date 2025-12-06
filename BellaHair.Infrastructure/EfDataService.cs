@@ -393,15 +393,14 @@ public class EfDataService : IDataService
 
         var kandidater = alleRabatter
             .Where(r => r.IsWithinCampaignPeriod(dato))
-            // 🔐 kun rabatter, der giver mening for den kunde (tier)
-            .Where(r => DiscountCalc.IsRabatAllowedForKunde(r, kunde))
+            //  kun rabatter, der giver mening for den kunde (tier)
+            .Where(r => DiscountCalc.IsRabatAllowedForKunde(kunde, r))
             .ToList();
 
         // Beregn bedste rabat
         var discountResult = DiscountCalc.CalculateBestDiscount(
             grundBeløb,
             kunde,
-            dbBooking.ValgtRabat,
             kandidater);
 
         var rabatBeløb = discountResult.OriginalPrice - discountResult.FinalPrice;
