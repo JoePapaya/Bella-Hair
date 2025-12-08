@@ -118,6 +118,16 @@ public class BellaHairDbContext : DbContext
             entity.Property(f => f.RabatTekst)
                   .HasMaxLength(200);
 
+            // 🔹 Snapshot felter
+            entity.Property(f => f.KundeNavn)
+                  .HasMaxLength(200);
+
+            entity.Property(f => f.KundeEmail)
+                  .HasMaxLength(200);
+
+            entity.Property(f => f.KundeTelefon)
+                  .HasMaxLength(50);
+
             entity.HasOne(f => f.Kunde)
                   .WithMany()
                   .HasForeignKey(f => f.KundeId)
@@ -128,6 +138,7 @@ public class BellaHairDbContext : DbContext
                   .HasForeignKey(f => f.BookingId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
+
 
         // ---------- SEED: KUNDER ----------
         modelBuilder.Entity<Kunde>().HasData(

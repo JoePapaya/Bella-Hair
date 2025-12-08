@@ -21,12 +21,8 @@ public class Booking
     public DateTime Start => Tidspunkt;
     public DateTime End => Tidspunkt.AddMinutes(Varighed);
 
-
-
     public BookingStatus Status { get; set; }
     public string? ValgtRabat { get; set; }
-
-    // Computed properties for kalenderen (NOT mapped to DB)
 
     // Navigation properties (hvis du bruger dem i UI)
     public Kunde? Kunde { get; set; }

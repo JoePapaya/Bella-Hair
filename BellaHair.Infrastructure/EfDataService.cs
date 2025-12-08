@@ -382,6 +382,8 @@ public class EfDataService : IDataService
 
         // Find kunde
         var kunde = await db.Kunder.FindAsync(dbBooking.KundeId);
+        if (kunde is null)
+            throw new InvalidOperationException($"Kunde med id {dbBooking.KundeId} blev ikke fundet.");
 
         // Brug bookingens dato som "historisk" dato til kampagner
         var dato = dbBooking.Tidspunkt.Date;
@@ -438,15 +440,24 @@ public class EfDataService : IDataService
             BookingId = dbBooking.BookingId,
             FakturaDato = dbBooking.Tidspunkt,
 
+            // 🔹 SNAPSHOT af kunde-info
+            KundeNavn = kunde.Navn,
+            KundeEmail = kunde.Email,
+            KundeTelefon = kunde.Telefon,
+
+            // Beløb (snapshot)
             Beløb = discountResult.OriginalPrice,
             RabatBeløb = rabatBeløb,
             TotalBeløb = discountResult.FinalPrice,
 
             RabatTekst = rabatTekst,
-            ErFirmafaktura = false,
-            Firmanavn = null,
-            Cvr = null
+
+            // 🔹 BRUG KUNDENS TYPE OG FIRMADATA
+            ErFirmafaktura = kunde.KundeType == KundeType.Firma,
+            Firmanavn = kunde.KundeType == KundeType.Firma ? kunde.Firmanavn : null,
+            Cvr = kunde.KundeType == KundeType.Firma ? kunde.Cvr : null
         };
+
 
         db.Fakturaer.Add(faktura);
 

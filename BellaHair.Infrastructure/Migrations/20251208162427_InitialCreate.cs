@@ -38,11 +38,14 @@ namespace BellaHair.Infrastructure.Migrations
                     Navn = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Adresse = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Postnr = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Fødselsdag = table.Column<DateOnly>(type: "date", nullable: false),
                     By = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Points = table.Column<int>(type: "int", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Telefon = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Fødselsdag = table.Column<DateOnly>(type: "date", nullable: false),
+                    KundeType = table.Column<int>(type: "int", nullable: false),
+                    Firmanavn = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Cvr = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Points = table.Column<int>(type: "int", nullable: false),
                     BesøgAntal = table.Column<int>(type: "int", nullable: false),
                     LoyaltyTier = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -133,6 +136,9 @@ namespace BellaHair.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     KundeId = table.Column<int>(type: "int", nullable: false),
                     BookingId = table.Column<int>(type: "int", nullable: false),
+                    KundeNavn = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    KundeEmail = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    KundeTelefon = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     ErFirmafaktura = table.Column<bool>(type: "bit", nullable: false),
                     Firmanavn = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Cvr = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -173,12 +179,12 @@ namespace BellaHair.Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "Kunder",
-                columns: new[] { "KundeId", "Adresse", "BesøgAntal", "By", "Email", "Fødselsdag", "LoyaltyTier", "Navn", "Points", "Postnr", "Telefon" },
+                columns: new[] { "KundeId", "Adresse", "BesøgAntal", "By", "Cvr", "Email", "Firmanavn", "Fødselsdag", "KundeType", "LoyaltyTier", "Navn", "Points", "Postnr", "Telefon" },
                 values: new object[,]
                 {
-                    { 1, "Comptonvej 1", 0, "København Ø", "kendrick@example.com", new DateOnly(1987, 6, 17), null, "Kendrick", 0, "2100", "12345678" },
-                    { 2, "Dreamvillegade 2", 0, "Aarhus C", "jcole@example.com", new DateOnly(1985, 1, 28), null, "J. Cole", 0, "8000", "22334455" },
-                    { 3, "OVO Allé 3", 0, "Odense C", "drake@example.com", new DateOnly(1986, 10, 24), null, "Drake", 0, "5000", "99887766" }
+                    { 1, "Comptonvej 1", 0, "København Ø", null, "kendrick@example.com", null, new DateOnly(1987, 6, 17), 0, null, "Kendrick", 0, "2100", "12345678" },
+                    { 2, "Dreamvillegade 2", 0, "Aarhus C", null, "jcole@example.com", null, new DateOnly(1985, 1, 28), 0, null, "J. Cole", 0, "8000", "22334455" },
+                    { 3, "OVO Allé 3", 0, "Odense C", null, "drake@example.com", null, new DateOnly(1986, 10, 24), 0, null, "Drake", 0, "5000", "99887766" }
                 });
 
             migrationBuilder.InsertData(

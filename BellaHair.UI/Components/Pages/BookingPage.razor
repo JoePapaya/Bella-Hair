@@ -113,6 +113,7 @@
                 </select>
             </div>
 
+
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Behandling</label>
                 <select class="w-full border p-2 rounded" @onchange="OnBehandlingChanged">
@@ -297,18 +298,25 @@
             _ => "Alle bookinger"
         };
 
-    private void NewBooking()
+    private async void NewBooking()
     {
         isEditing = false;
 
-        // Find fx første behandling som default
         var førsteBehandling = DataService.Behandlinger.FirstOrDefault();
+        var førsteMedarbejder = DataService.Medarbejdere.FirstOrDefault();
+
+        if (førsteMedarbejder == null)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Du skal oprette mindst én medarbejder før du kan lave en booking.");
+            return;
+        }
 
         editModel = new Booking
         {
-            Status = BookingStatus.Kommende,  // ny booking starter som Kommende
+            Status = BookingStatus.Kommende,
             BehandlingId = førsteBehandling?.BehandlingId ?? 0,
-            Varighed = førsteBehandling?.VarighedMinutter ?? 30  // fallback 30 hvis ingen behandling
+            Varighed = førsteBehandling?.VarighedMinutter ?? 30,
+            MedarbejderId = førsteMedarbejder.MedarbejderId
         };
 
         isOriginallyCompleted = false;
@@ -318,6 +326,8 @@
 
         showDialog = true;
     }
+
+
 
     private string GetDiscountLabel(DiscountResult calc, Kunde? kunde)
     {
@@ -363,8 +373,11 @@
             Tidspunkt = b.Tidspunkt,
             Varighed = b.Varighed,
             Status = b.Status,
-            ValgtRabat = b.ValgtRabat
+            ValgtRabat = b.ValgtRabat,
+
+          
         };
+
 
         isOriginallyCompleted = (b.Status == BookingStatus.Gennemført);
 
@@ -377,7 +390,13 @@
 
     private async Task SaveBooking()
     {
-        errorMessage = null; // reset
+        errorMessage = null;
+
+        if (editModel.MedarbejderId == 0)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Vælg en medarbejder før du gemmer.");
+            return;
+        }
 
         if (DateTime.TryParse($"{datoInput} {tidInput}", out var parsed))
         {
@@ -396,8 +415,10 @@
         }
         catch (Exception ex)
         {
-            errorMessage = ex.Message;
-            await JSRuntime.InvokeVoidAsync("alert", errorMessage);
+            var inner = ex.InnerException?.Message ?? ex.Message;
+            errorMessage = inner;
+            await JSRuntime.InvokeVoidAsync("console.error", ex.ToString());
+            await JSRuntime.InvokeVoidAsync("alert", inner);
         }
     }
 
@@ -495,7 +516,6 @@
                     originalPriceToShow = calc.OriginalPrice;
                     rabatLabel = GetDiscountLabel(calc, kunde);
                 }
-
             }
         }
         else
@@ -510,19 +530,15 @@
 
             finalPrice = calc.FinalPrice;
 
-            // Hvis der faktisk er en rabat
             if (calc.AppliedDiscount is not null && calc.FinalPrice < calc.OriginalPrice)
             {
                 hasRabat = true;
                 originalPriceToShow = calc.OriginalPrice;
-
-                // Brug helper → viser kun Stamkunde Bronze/Sølv/Guld hvis kunde faktisk er den tier
                 rabatLabel = GetDiscountLabel(calc, kunde);
             }
-
         }
 
-
+        // ---------------- RÆKKE-MARKUP ----------------
         __builder.OpenElement(0, "div");
         __builder.AddAttribute(1, "class", "flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors");
 
@@ -530,106 +546,122 @@
         __builder.OpenElement(2, "div");
         __builder.AddAttribute(3, "class", "flex-1 min-w-0");
 
+        // navn + badges
         __builder.OpenElement(4, "div");
         __builder.AddAttribute(5, "class", "flex items-center gap-2 mb-1");
 
+        // kundenavn
         __builder.OpenElement(6, "p");
         __builder.AddAttribute(7, "class", "text-gray-900");
         __builder.AddContent(8, kunde?.Navn);
         __builder.CloseElement(); // p
 
-        if (!string.IsNullOrEmpty(kunde?.LoyaltyTier))
+        // Firma badge
+        if (kunde?.KundeType == KundeType.Firma)
         {
             __builder.OpenElement(9, "span");
-            __builder.AddAttribute(10, "class", "px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700");
-            __builder.AddContent(11, kunde!.LoyaltyTier);
-            __builder.CloseElement();
+            __builder.AddAttribute(10, "class", "px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700");
+            __builder.AddContent(11, "Firma");
+            __builder.CloseElement(); // span
         }
 
-        __builder.OpenElement(12, "span");
-        __builder.AddAttribute(13, "class", $"{GetStatusBadgeClass(booking.Status)} px-2 py-0.5 rounded-full text-xs");
-        __builder.AddContent(14, booking.Status.ToString());
+        // Loyalty badge
+        if (!string.IsNullOrEmpty(kunde?.LoyaltyTier))
+        {
+            __builder.OpenElement(12, "span");
+            __builder.AddAttribute(13, "class", "px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700");
+            __builder.AddContent(14, kunde!.LoyaltyTier);
+            __builder.CloseElement(); // span
+        }
+
+        // Status badge
+        __builder.OpenElement(15, "span");
+        __builder.AddAttribute(16, "class", $"{GetStatusBadgeClass(booking.Status)} px-2 py-0.5 rounded-full text-xs");
+        __builder.AddContent(17, booking.Status.ToString());
         __builder.CloseElement(); // span
 
         __builder.CloseElement(); // div (navn + badges)
 
-        __builder.OpenElement(15, "p");
-        __builder.AddAttribute(16, "class", "text-sm text-gray-600");
-        __builder.AddContent(17, behandling?.Navn);
-        __builder.CloseElement();
-
+        // behandling
         __builder.OpenElement(18, "p");
-        __builder.AddAttribute(19, "class", "text-xs text-gray-500");
-        __builder.AddContent(20, $"Medarbejder: {medarbejder?.Navn}");
-        __builder.CloseElement();
+        __builder.AddAttribute(19, "class", "text-sm text-gray-600");
+        __builder.AddContent(20, behandling?.Navn);
+        __builder.CloseElement(); // p
 
-        __builder.CloseElement(); // venstre side
+        // medarbejder
+        __builder.OpenElement(21, "p");
+        __builder.AddAttribute(22, "class", "text-xs text-gray-500");
+        __builder.AddContent(23, $"Medarbejder: {medarbejder?.Navn}");
+        __builder.CloseElement(); // p
+
+        __builder.CloseElement(); // venstre side div
 
         // midten: tid
-        __builder.OpenElement(21, "div");
-        __builder.AddAttribute(22, "class", "text-right");
-        __builder.OpenElement(23, "p");
-        __builder.AddAttribute(24, "class", "text-gray-900");
-        __builder.AddContent(25, booking.Tidspunkt.ToString("ddd dd. MMM yyyy"));
-        __builder.CloseElement();
+        __builder.OpenElement(24, "div");
+        __builder.AddAttribute(25, "class", "text-right");
         __builder.OpenElement(26, "p");
-        __builder.AddAttribute(27, "class", "text-sm text-gray-600");
-        __builder.AddContent(28, booking.Tidspunkt.ToString("HH:mm"));
+        __builder.AddAttribute(27, "class", "text-gray-900");
+        __builder.AddContent(28, booking.Tidspunkt.ToString("ddd dd. MMM yyyy"));
         __builder.CloseElement();
         __builder.OpenElement(29, "p");
         __builder.AddAttribute(30, "class", "text-sm text-gray-600");
-        __builder.AddContent(31, $"{booking.Varighed} min");
+        __builder.AddContent(31, booking.Tidspunkt.ToString("HH:mm"));
+        __builder.CloseElement();
+        __builder.OpenElement(32, "p");
+        __builder.AddAttribute(33, "class", "text-sm text-gray-600");
+        __builder.AddContent(34, $"{booking.Varighed} min");
         __builder.CloseElement();
         __builder.CloseElement(); // midten
 
         // højre: pris + rabat
-        __builder.OpenElement(32, "div");
-        __builder.AddAttribute(33, "class", "text-right min-w-[140px]");
+        __builder.OpenElement(35, "div");
+        __builder.AddAttribute(36, "class", "text-right min-w-[140px]");
 
-        __builder.OpenElement(34, "p");
-        __builder.AddAttribute(35, "class", "text-gray-900");
-        __builder.AddContent(36, $"{Math.Round(finalPrice)} kr");
-        __builder.CloseElement();
+        __builder.OpenElement(37, "p");
+        __builder.AddAttribute(38, "class", "text-gray-900");
+        __builder.AddContent(39, $"{Math.Round(finalPrice)} kr");
+        __builder.CloseElement(); // p
 
         if (hasRabat && originalPriceToShow.HasValue)
         {
-            __builder.OpenElement(37, "p");
-            __builder.AddAttribute(38, "class", "text-xs text-gray-400 line-through");
-            __builder.AddContent(39, $"{originalPriceToShow.Value} kr");
-            __builder.CloseElement();
+            __builder.OpenElement(40, "p");
+            __builder.AddAttribute(41, "class", "text-xs text-gray-400 line-through");
+            __builder.AddContent(42, $"{originalPriceToShow.Value} kr");
+            __builder.CloseElement(); // p
 
             if (!string.IsNullOrWhiteSpace(rabatLabel))
             {
-                __builder.OpenElement(40, "p");
-                __builder.AddAttribute(41, "class", "text-xs text-green-600");
-                __builder.AddContent(42, rabatLabel);
-                __builder.CloseElement();
+                __builder.OpenElement(43, "p");
+                __builder.AddAttribute(44, "class", "text-xs text-green-600");
+                __builder.AddContent(45, rabatLabel);
+                __builder.CloseElement(); // p
             }
         }
 
-        __builder.CloseElement(); // pris
+        __builder.CloseElement(); // pris-div
 
         // actions
-        __builder.OpenElement(44, "div");
-        __builder.AddAttribute(45, "class", "flex gap-2");
+        __builder.OpenElement(46, "div");
+        __builder.AddAttribute(47, "class", "flex gap-2");
 
-        __builder.OpenElement(46, "button");
-        __builder.AddAttribute(47, "class", "p-2 hover:bg-gray-200 rounded");
-        __builder.AddAttribute(48, "onclick", EventCallback.Factory.Create(this, () => EditBooking(booking.BookingId)));
-        __builder.AddContent(49, "✏️");
-        __builder.CloseElement();
+        __builder.OpenElement(48, "button");
+        __builder.AddAttribute(49, "class", "p-2 hover:bg-gray-200 rounded");
+        __builder.AddAttribute(50, "onclick", EventCallback.Factory.Create(this, () => EditBooking(booking.BookingId)));
+        __builder.AddContent(51, "✏️");
+        __builder.CloseElement(); // button
 
         if (booking.Status != BookingStatus.Gennemført)
         {
-            __builder.OpenElement(50, "button");
-            __builder.AddAttribute(51, "class", "p-2 hover:bg-gray-200 rounded text-red-600");
-            __builder.AddAttribute(52, "onclick", EventCallback.Factory.Create(this, () => deleteBookingId = booking.BookingId));
-            __builder.AddContent(53, "🗑️");
-            __builder.CloseElement();
+            __builder.OpenElement(52, "button");
+            __builder.AddAttribute(53, "class", "p-2 hover:bg-gray-200 rounded text-red-600");
+            __builder.AddAttribute(54, "onclick", EventCallback.Factory.Create(this, () => deleteBookingId = booking.BookingId));
+            __builder.AddContent(55, "🗑️");
+            __builder.CloseElement(); // button
         }
 
-        __builder.CloseElement(); // actions
+        __builder.CloseElement(); // actions-div
 
-        __builder.CloseElement(); // row
+        __builder.CloseElement(); // row div
     };
+
 }

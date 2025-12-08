@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
-    [Migration("20251204145736_InitialCreate")]
+    [Migration("20251208162427_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -162,8 +162,21 @@ namespace BellaHair.Infrastructure.Migrations
                     b.Property<string>("Firmanavn")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("KundeEmail")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<int>("KundeId")
                         .HasColumnType("int");
+
+                    b.Property<string>("KundeNavn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("KundeTelefon")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("RabatBeløb")
                         .HasPrecision(18, 2)
@@ -205,12 +218,21 @@ namespace BellaHair.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Cvr")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Firmanavn")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateOnly>("Fødselsdag")
                         .HasColumnType("date");
+
+                    b.Property<int>("KundeType")
+                        .HasColumnType("int");
 
                     b.Property<string>("LoyaltyTier")
                         .HasColumnType("nvarchar(max)");
@@ -243,6 +265,7 @@ namespace BellaHair.Infrastructure.Migrations
                             By = "København Ø",
                             Email = "kendrick@example.com",
                             Fødselsdag = new DateOnly(1987, 6, 17),
+                            KundeType = 0,
                             Navn = "Kendrick",
                             Points = 0,
                             Postnr = "2100",
@@ -256,6 +279,7 @@ namespace BellaHair.Infrastructure.Migrations
                             By = "Aarhus C",
                             Email = "jcole@example.com",
                             Fødselsdag = new DateOnly(1985, 1, 28),
+                            KundeType = 0,
                             Navn = "J. Cole",
                             Points = 0,
                             Postnr = "8000",
@@ -269,6 +293,7 @@ namespace BellaHair.Infrastructure.Migrations
                             By = "Odense C",
                             Email = "drake@example.com",
                             Fødselsdag = new DateOnly(1986, 10, 24),
+                            KundeType = 0,
                             Navn = "Drake",
                             Points = 0,
                             Postnr = "5000",

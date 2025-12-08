@@ -44,8 +44,17 @@
                 <div class="p-6">
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
+
                             <div class="flex items-center gap-2 mb-1">
                                 <h3 class="text-gray-900">@kunde.Navn</h3>
+
+                                @if (kunde.KundeType == KundeType.Firma)
+                                {
+                                    <span class="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700">
+                                        Firma
+                                    </span>
+                                }
+
                                 @if (!string.IsNullOrEmpty(kunde.LoyaltyTier))
                                 {
                                     <span class="@GetLoyaltyBadgeClass(kunde.LoyaltyTier) px-2 py-0.5 rounded text-xs">
@@ -130,17 +139,56 @@
             </h2>
 
             <div class="space-y-3">
-                <input class="w-full border p-2 rounded" placeholder="Navn" @bind="current.Navn" />
+                <!-- Kundetype -->
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Kundetype</label>
+                    <select class="w-full border p-2 rounded"
+                            @bind="current.KundeType">
+                        <option value="@KundeType.Privat">Privat kunde</option>
+                        <option value="@KundeType.Firma">Firmakunde</option>
+                    </select>
+                </div>
 
-                <input class="w-full border p-2 rounded" placeholder="Email" @bind="current.Email" />
+                <!-- Firmafelter kun hvis firmakunde -->
+                @if (current.KundeType == KundeType.Firma)
+                {
+                    <div>
+                        <input class="w-full border p-2 rounded"
+                               placeholder="Firmanavn"
+                               @bind="current.Firmanavn" />
+                    </div>
 
-                <input class="w-full border p-2 rounded" placeholder="Telefon" @bind="current.Telefon" />
+                    <div>
+                        <input class="w-full border p-2 rounded"
+                               placeholder="CVR"
+                               @bind="current.Cvr" />
+                    </div>
+                }
 
-                <input class="w-full border p-2 rounded" placeholder="Adresse" @bind="current.Adresse" />
+                <!-- Resten som før -->
+                <input class="w-full border p-2 rounded"
+                       placeholder="Navn"
+                       @bind="current.Navn" />
+
+                <input class="w-full border p-2 rounded"
+                       placeholder="Email"
+                       @bind="current.Email" />
+
+                <input class="w-full border p-2 rounded"
+                       placeholder="Telefon"
+                       @bind="current.Telefon" />
+
+                <input class="w-full border p-2 rounded"
+                       placeholder="Adresse"
+                       @bind="current.Adresse" />
 
                 <div class="flex gap-2">
-                    <input class="w-1/2 border p-2 rounded" placeholder="Postnr" @bind="current.Postnr" />
-                    <input class="w-1/2 border p-2 rounded" placeholder="By" @bind="current.By" />
+                    <input class="w-1/2 border p-2 rounded"
+                           placeholder="Postnr"
+                           @bind="current.Postnr" />
+                    <input class="w-1/2 border p-2 rounded"
+                           placeholder="By"
+                           @bind="current.By" />
                 </div>
 
                 <div>
@@ -150,17 +198,24 @@
                            value="@fødselsdagsInput"
                            @onchange="OnBirthdayChanged" />
                 </div>
-
-                @* Ingen mulighed for at vælge LoyaltyTier manuelt længere *@
             </div>
 
             <div class="flex justify-end gap-2 mt-6">
-                <button type="button" class="px-4 py-2 border rounded" @onclick="CloseModal">Annuller</button>
-                <button type="button" class="px-4 py-2 bg-blue-600 text-white rounded" @onclick="SaveKunde">Gem</button>
+                <button type="button"
+                        class="px-4 py-2 border rounded"
+                        @onclick="CloseModal">
+                    Annuller
+                </button>
+                <button type="button"
+                        class="px-4 py-2 bg-blue-600 text-white rounded"
+                        @onclick="SaveKunde">
+                    Gem
+                </button>
             </div>
         </div>
     </div>
 }
+
 
 @code {
     private string searchTerm = string.Empty;
@@ -194,10 +249,14 @@
     private void OpenNewKunde()
     {
         isEdit = false;
-        current = new Kunde();
+        current = new Kunde
+        {
+            KundeType = KundeType.Privat   // default: privat kunde
+        };
         fødselsdagsInput = null;
         showModal = true;
     }
+
 
     private async Task EditKunde(int kundeId)
     {
@@ -217,7 +276,12 @@
             Telefon = kunde.Telefon,
             BesøgAntal = kunde.BesøgAntal,
             LoyaltyTier = kunde.LoyaltyTier,  // bevares, men kan ikke ændres i UI
-            Fødselsdag = kunde.Fødselsdag
+            Fødselsdag = kunde.Fødselsdag,
+
+            // 🔹 NYT: firmainfo
+            KundeType = kunde.KundeType,
+            Firmanavn = kunde.Firmanavn,
+            Cvr = kunde.Cvr
         };
 
         fødselsdagsInput = current.Fødselsdag != default
@@ -226,6 +290,7 @@
 
         showModal = true;
     }
+
 
     private async Task SaveKunde()
     {

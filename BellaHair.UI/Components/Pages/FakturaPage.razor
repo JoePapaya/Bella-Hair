@@ -42,7 +42,7 @@
     <div class="grid gap-6">
         @foreach (var faktura in FilteredFakturaer)
         {
-            var kunde = DataService.Kunder.FirstOrDefault(k => k.KundeId == faktura.KundeId);
+            // du kan beholde disse, hvis du stadig vil vise behandling/frisør/tidspunkt
             var booking = DataService.Bookinger.FirstOrDefault(b => b.BookingId == faktura.BookingId);
             var behandling = booking != null
             ? DataService.Behandlinger.FirstOrDefault(t => t.BehandlingId == booking.BehandlingId)
@@ -95,7 +95,8 @@
                             }
                             else
                             {
-                                <p class="font-medium text-gray-900">@kunde?.Navn</p>
+                                <!-- 🔹 BRUG SNAPSHOT -->
+                                <p class="font-medium text-gray-900">@faktura.KundeNavn</p>
                             }
                         </div>
 
@@ -202,16 +203,15 @@
             var search = searchTerm.Trim().ToLower();
 
             return fakturaer.Where(f =>
-{
-            var kunde = DataService.Kunder.FirstOrDefault(k => k.KundeId == f.KundeId);
-            var navn = kunde?.Navn?.ToLower();
-            var firma = f.Firmanavn?.ToLower();
+            {
+                var navn = f.KundeNavn?.ToLower();
+                var firma = f.Firmanavn?.ToLower();
 
-            var matchKunde = !string.IsNullOrEmpty(navn) && navn.StartsWith(search);
-            var matchFirma = !string.IsNullOrEmpty(firma) && firma.StartsWith(search);
+                var matchKunde = !string.IsNullOrEmpty(navn) && navn.StartsWith(search);
+                var matchFirma = !string.IsNullOrEmpty(firma) && firma.StartsWith(search);
 
-            return matchKunde || matchFirma;
-        });
+                return matchKunde || matchFirma;
+            });
         }
     }
 
