@@ -1,6 +1,6 @@
 ﻿using BellaHair.Application.Interfaces;
 using BellaHair.Domain.Entities;
-using BellaHair.Domain.Enums; // Eller hvor din LoyaltyTier enum ligger
+using BellaHair.Domain.Enums; 
 
 namespace BellaHair.Application.Services;
 
@@ -13,22 +13,19 @@ public class LoyaltyService : ILoyaltyService
         _dataService = dataService;
     }
 
-    public LoyaltyTier BeregnLoyaltyTierForKunde(Kunde kunde)
+    private LoyaltyTier BeregnLoyaltyTier(int antalGennemførte)
     {
-        var antalGennemførte = _dataService.Bookinger
-            .Count(b => b.KundeId == kunde.KundeId &&
-                        b.Status == BookingStatus.Gennemført);
-
         if (antalGennemførte >= 20) return LoyaltyTier.Gold;
         if (antalGennemførte >= 10) return LoyaltyTier.Silver;
         if (antalGennemførte >= 5) return LoyaltyTier.Bronze;
-
         return LoyaltyTier.None;
     }
 
+
     public async Task OpdaterLoyaltyTierAsync(Kunde kunde)
     {
-        var nyTier = BeregnLoyaltyTierForKunde(kunde);
+        var antalGennemførte = await _dataService.GetCompletedBookingsCountForKundeAsync(kunde.KundeId);
+        var nyTier = BeregnLoyaltyTier(antalGennemførte);
 
         if (kunde.LoyaltyTier != nyTier)
         {
@@ -36,6 +33,7 @@ public class LoyaltyService : ILoyaltyService
             await _dataService.UpdateKundeAsync(kunde);
         }
     }
+
 
     public async Task HandleBookingCompletedAsync(int kundeId)
     {

@@ -16,6 +16,14 @@ namespace BellaHair.Application.Interfaces
         IList<Rabat> Rabatter { get; }
         IList<Faktura> Fakturaer { get; }
 
+        // ---------- Booking ----------
+        Task<Behandling?> GetBehandlingAsync(string navn);
+        Task<Booking?> GetBookingAsync(int bookingId);
+        Task<Booking> AddBookingAsync(Booking booking);
+        Task UpdateBookingAsync(Booking booking);
+        Task DeleteBookingRawAsync(int bookingId);
+        Task<int> GetCompletedBookingsCountForKundeAsync(int kundeId);
+
         // ---------- Medarbejder ----------
         Task AddMedarbejderAsync(Medarbejder medarbejder);
         Task UpdateMedarbejderAsync(Medarbejder medarbejder);
@@ -34,12 +42,6 @@ namespace BellaHair.Application.Interfaces
         Task DeleteBehandlingAsync(int behandlingId);
         Task<Behandling?> GetBehandlingAsync(int behandlingId);
 
-        // ---------- Booking ----------
-        Task<Behandling?> GetBehandlingAsync(string navn);
-        Task<Booking?> GetBookingAsync(int bookingId);
-        Task<Booking> AddBookingAsync(Booking booking);
-        Task UpdateBookingAsync(Booking booking);
-        Task DeleteBookingAsync(int bookingid);
 
         // ---------- Rabat ----------
         Task<Rabat> AddRabatAsync(Rabat rabat);
@@ -48,15 +50,7 @@ namespace BellaHair.Application.Interfaces
         Task<Rabat?> GetRabatAsync(int id);
 
         // ---------- Faktura ----------
-        /// <summary>
-        /// Opretter en faktura for den givne booking.
-        /// Implementeres så den låser pris/rabat på tidspunktet.
-        /// </summary>
-        Task<Faktura> CreateFakturaAsync(Booking booking);
-
-        /// <summary>
-        /// Henter faktura for en bestemt booking (eller null hvis ingen findes).
-        /// </summary>
+        Task AddFakturaAsync(Faktura faktura);
         Task<Faktura?> GetFakturaForBookingAsync(int bookingId);
     }
 }

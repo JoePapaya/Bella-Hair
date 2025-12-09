@@ -121,9 +121,18 @@ public class BookingApplicationService : IBookingApplicationService
                 return;
             }
 
+            // 🔒 Domæneregel: må ikke slette gennemførte bookinger
+            if (booking.Status == BookingStatus.Gennemført)
+            {
+                throw new InvalidOperationException(
+                    "Kan ikke slette en gennemført booking, fordi der er oprettet en faktura. " +
+                    "Lav i stedet en kreditnota eller håndter det manuelt.");
+            }
+
             var kundeId = booking.KundeId;
 
-            await _data.DeleteBookingAsync(id);
+            // Rå sletning (ingen regler her)
+            await _data.DeleteBookingRawAsync(id);
 
             // efter sletning: lad loyalty-service reagere
             await _loyaltyService.HandleBookingDeletedAsync(kundeId);
@@ -138,4 +147,5 @@ public class BookingApplicationService : IBookingApplicationService
             throw new Exception(ex.InnerException?.Message ?? ex.Message, ex);
         }
     }
+
 }

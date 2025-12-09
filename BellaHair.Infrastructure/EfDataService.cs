@@ -114,36 +114,6 @@ public class EfDataService : IDataService
     }
 
     // ---------- Booking ----------
-    public async Task DeleteBookingAsync(int bookkingid)
-    {
-        using var db = CreateContext();
-        await using var t = await db.Database.BeginTransactionAsync();
-
-        var booking = await db.Bookinger.FindAsync(bookkingid);
-        if (booking == null)
-            return;
-
-        // 🔴 Må ikke slette gennemførte bookinger (de har betalt / faktura)
-        if (booking.Status == BookingStatus.Gennemført)
-        {
-            throw new InvalidOperationException(
-                "Kan ikke slette en gennemført booking, fordi der er oprettet en faktura. " +
-                "Lav i stedet en kreditnota eller håndter det manuelt.");
-        }
-
-        // ✅ Booking er IKKE gennemført → her må vi godt rydde op
-
-        // Slet tilhørende faktura(er), hvis de findes
-        var fakturaer = db.Fakturaer.Where(f => f.BookingId == bookkingid);
-        db.Fakturaer.RemoveRange(fakturaer);
-
-        // Slet selve bookingen
-        db.Fakturaer.RemoveRange(fakturaer);
-        db.Bookinger.Remove(booking);
-        await db.SaveChangesAsync();
-
-        await t.CommitAsync();
-    }
 
     public async Task<Booking?> GetBookingAsync(int bookingId)
     {
@@ -158,85 +128,43 @@ public class EfDataService : IDataService
     public async Task<Booking> AddBookingAsync(Booking booking)
     {
         await using var db = CreateContext();
-        await using var transaction =
-            await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
-
-        try
-        {
-            // Tjek om tidspunktet allerede er booket efter at transaktionen er startet
-            bool overlap = await db.Bookinger
-                .AnyAsync(b =>
-                    b.MedarbejderId == booking.MedarbejderId &&
-                    b.Tidspunkt == booking.Tidspunkt);
-
-            if (overlap)
-                throw new InvalidOperationException("Medarbejderen er allerede booket på dette tidspunkt.");
-
-            db.Bookinger.Add(booking);
-            await db.SaveChangesAsync();
-
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
-
+        db.Bookinger.Add(booking);
+        await db.SaveChangesAsync();
         return booking;
     }
 
     public async Task UpdateBookingAsync(Booking booking)
     {
         await using var db = CreateContext();
+        db.Bookinger.Update(booking);
+        await db.SaveChangesAsync();
+    }
+    public async Task DeleteBookingRawAsync(int bookingId)
+    {
+        await using var db = CreateContext();
+        await using var t = await db.Database.BeginTransactionAsync();
 
-        // Start en transaktion → SERIALIZABLE forhindrer race conditions
-        await using var transaction =
-            await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        var booking = await db.Bookinger.FindAsync(bookingId);
+        if (booking == null)
+            return;
 
-        try
-        {
-            // Hent den eksisterende booking fra DB
-            var existing = await db.Bookinger
-                .FirstOrDefaultAsync(b => b.BookingId == booking.BookingId);
+        // Slet tilhørende faktura(er), hvis de findes
+        var fakturaer = db.Fakturaer.Where(f => f.BookingId == bookingId);
+        db.Fakturaer.RemoveRange(fakturaer);
 
-            if (existing == null)
-                throw new InvalidOperationException("Booking blev ikke fundet.");
+        // Slet selve bookingen
+        db.Bookinger.Remove(booking);
 
-            // Opdater ALLE felter, der kan ændres fra UI
-            existing.KundeId = booking.KundeId;
-            existing.MedarbejderId = booking.MedarbejderId;
-            existing.BehandlingId = booking.BehandlingId;
-            existing.Tidspunkt = booking.Tidspunkt;
-            existing.Varighed = booking.Varighed;
-            existing.Status = booking.Status;
-            existing.ValgtRabat = booking.ValgtRabat;
-
-            // Tjek om tidspunktet allerede er taget for den valgte medarbejder
-            bool overlap = await db.Bookinger.AnyAsync(b =>
-                b.BookingId != booking.BookingId &&      // Ignorér dig selv
-                b.MedarbejderId == existing.MedarbejderId &&
-                b.Tidspunkt == existing.Tidspunkt);
-
-            if (overlap)
-            {
-                throw new InvalidOperationException(
-                    "Medarbejderen er allerede booket på dette tidspunkt.");
-            }
-
-            // Gem ændringer
-            await db.SaveChangesAsync();
-
-            // Commit transaktion
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+        await db.SaveChangesAsync();
+        await t.CommitAsync();
     }
 
+    public async Task<int> GetCompletedBookingsCountForKundeAsync(int kundeId)
+    {
+        await using var db = CreateContext();
+        return await db.Bookinger
+            .CountAsync(b => b.KundeId == kundeId && b.Status == BookingStatus.Gennemført);
+    }
 
 
     // ---------- Kunde ----------
@@ -346,112 +274,12 @@ public class EfDataService : IDataService
 
     // ---------- Faktura ----------
 
-    public async Task<Faktura> CreateFakturaAsync(Booking booking)
+    public async Task AddFakturaAsync(Faktura faktura)
     {
-        using var db = CreateContext();
-        await using var transaction = await db.Database.BeginTransactionAsync();
-
-        var dbBooking = await db.Bookinger.FindAsync(booking.BookingId);
-        if (dbBooking == null)
-            throw new InvalidOperationException($"Booking med id {booking.BookingId} blev ikke fundet.");
-
-        if (dbBooking.Status != BookingStatus.Gennemført)
-        {
-            throw new InvalidOperationException(
-                "Kan kun oprette faktura for bookinger med status 'Gennemført'.");
-        }
-
-        var eksisterende = await db.Fakturaer
-            .FirstOrDefaultAsync(f => f.BookingId == dbBooking.BookingId);
-
-        if (eksisterende is not null)
-            return eksisterende;
-
-        // Find behandling og medarbejder for snapshot
-        var behandling = await db.Behandlinger.FindAsync(dbBooking.BehandlingId);
-        var medarbejder = await db.Medarbejdere.FindAsync(dbBooking.MedarbejderId);
-
-        var grundBeløb = behandling?.Pris ?? 0m;
-
-        var kunde = await db.Kunder.FindAsync(dbBooking.KundeId);
-        if (kunde is null)
-            throw new InvalidOperationException($"Kunde med id {dbBooking.KundeId} blev ikke fundet.");
-
-        var dato = dbBooking.Tidspunkt.Date;
-
-        var alleRabatter = await db.Rabatter
-            .Where(r => r.Aktiv)
-            .ToListAsync();
-
-        var kandidater = alleRabatter
-            .Where(r => r.IsWithinCampaignPeriod(dato))
-            .Where(r => DiscountCalc.IsRabatAllowedForKunde(kunde, r))
-            .ToList();
-
-        var discountResult = DiscountCalc.CalculateBestDiscount(
-            grundBeløb,
-            kunde,
-            kandidater);
-
-        var rabatBeløb = discountResult.OriginalPrice - discountResult.FinalPrice;
-        if (rabatBeløb < 0) rabatBeløb = 0;
-
-        string? rabatTekst = discountResult.AppliedDiscount?.Navn;
-        var applied = discountResult.AppliedDiscount;
-
-        if (applied is not null && rabatBeløb > 0)
-        {
-            if (!string.IsNullOrWhiteSpace(applied.Navn))
-                rabatTekst = applied.Navn;
-            else if (applied.Percentage is > 0)
-                rabatTekst = $"{applied.Percentage.Value * 100:0.#}% rabat";
-            else if (applied.FixedAmount is > 0)
-                rabatTekst = $"{applied.FixedAmount.Value:0.##} kr rabat";
-            else
-                rabatTekst = "Rabat";
-        }
-        
-        var faktura = new Faktura
-        {
-            KundeId = dbBooking.KundeId,
-            BookingId = dbBooking.BookingId,
-
-            // datoer
-            FakturaDato = dbBooking.Tidspunkt,
-            BookingTidspunkt = dbBooking.Tidspunkt,
-
-            // kunde-snapshot
-            KundeNavn = kunde.Navn,
-            KundeEmail = kunde.Email,
-            KundeTelefon = kunde.Telefon,
-
-            // behandling og medarbejder snapshots
-            BehandlingNavn = behandling?.Navn,
-            MedarbejderNavn = medarbejder?.Navn,
-
-            // beløb
-            Beløb = discountResult.OriginalPrice,
-            RabatBeløb = rabatBeløb,
-            TotalBeløb = discountResult.FinalPrice,
-
-            RabatTekst = rabatTekst,
-
-            ErFirmafaktura = kunde.KundeType == KundeType.Firma,
-            Firmanavn = kunde.KundeType == KundeType.Firma ? kunde.Firmanavn : null,
-            Cvr = kunde.KundeType == KundeType.Firma ? kunde.Cvr : null
-        };
-
+        await using var db = CreateContext();
         db.Fakturaer.Add(faktura);
-
-        dbBooking.Status = BookingStatus.Gennemført;
-        db.Bookinger.Update(dbBooking);
-
         await db.SaveChangesAsync();
-        await transaction.CommitAsync();
-
-        return faktura;
     }
-
 
     public async Task<Faktura?> GetFakturaForBookingAsync(int bookingId)
     {
@@ -460,4 +288,5 @@ public class EfDataService : IDataService
             .AsNoTracking()
             .FirstOrDefaultAsync(f => f.BookingId == bookingId);
     }
+
 }

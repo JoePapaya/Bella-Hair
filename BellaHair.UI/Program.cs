@@ -22,9 +22,6 @@ builder.Services.AddScoped<IRabatService, RabatService>();
 builder.Services.AddScoped<ILoyaltyService, LoyaltyService>();
 builder.Services.AddScoped<IFakturaApplicationService, FakturaApplicationService>();
 
-
-
-
 // Blazor / Razor Components
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
