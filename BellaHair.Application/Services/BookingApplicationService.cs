@@ -10,15 +10,18 @@ public class BookingApplicationService : IBookingApplicationService
     private readonly IDataService _data;
     private readonly IBookingValidationService _validator;
     private readonly ILoyaltyService _loyaltyService;
+    private readonly IFakturaApplicationService _fakturaService;
 
     public BookingApplicationService(
         IDataService data,
         IBookingValidationService validator,
-        ILoyaltyService loyaltyService)
+        ILoyaltyService loyaltyService,
+        IFakturaApplicationService fakturaService)
     {
         _data = data;
         _validator = validator;
         _loyaltyService = loyaltyService;
+        _fakturaService = fakturaService;
     }
 
     // ---------- Read ----------
@@ -33,7 +36,7 @@ public class BookingApplicationService : IBookingApplicationService
 
     public async Task<Booking> CreateAsync(Booking booking)
     {
-        // 1) Valider booking (tjek overlap, tider osv.)
+        // 1) Valider booking
         await _validator.ValidateAsync(booking);
 
         // 2) Gem booking
@@ -42,22 +45,13 @@ public class BookingApplicationService : IBookingApplicationService
         // 3) Hvis den oprettes direkte som Gennemført:
         if (savedBooking.Status == BookingStatus.Gennemført)
         {
-            // Opdater loyalty for kunden (Bronze/Sølv/Guld ud fra antal gennemførte)
-            var kunde = await _data.GetKundeAsync(savedBooking.KundeId);
-            if (kunde is not null)
-            {
-                await _loyaltyService.OpdaterLoyaltyTierAsync(kunde);
-            }
+            // → Loyalty
+            await _loyaltyService.HandleBookingCompletedAsync(savedBooking.KundeId);
 
-            // Opret faktura hvis der ikke allerede findes en
-            var eksisterendeFaktura = await _data.GetFakturaForBookingAsync(savedBooking.BookingId);
-            if (eksisterendeFaktura == null)
-            {
-                await _data.CreateFakturaAsync(savedBooking);
-            }
+            // → Faktura
+            await _fakturaService.EnsureForBookingAsync(savedBooking);
         }
 
-        // Hvis status IKKE er Gennemført, laver vi hverken loyalty-opdatering eller faktura endnu
         return savedBooking;
     }
 
@@ -65,18 +59,17 @@ public class BookingApplicationService : IBookingApplicationService
 
     public async Task UpdateAsync(Booking booking)
     {
-        // 0) Hent den nuværende booking og evt. faktura fra databasen
+        // 0) Hent nuværende booking og faktura
         var eksisterende = await _data.GetBookingAsync(booking.BookingId);
         if (eksisterende is null)
             throw new InvalidOperationException($"Booking med id {booking.BookingId} blev ikke fundet.");
 
-        var eksisterendeFaktura = await _data.GetFakturaForBookingAsync(booking.BookingId);
+        var eksisterendeFaktura = await _fakturaService.GetForBookingAsync(booking.BookingId);
 
         var varAlleredeGennemført = eksisterende.Status == BookingStatus.Gennemført;
         var bliverNuGennemført = booking.Status == BookingStatus.Gennemført;
 
-        // 🔒 Regel: hvis der findes faktura og booking VAR gennemført,
-        // så må status ikke ændres til noget andet end Gennemført.
+        // 🔒 Hvis der findes faktura og booking VAR gennemført, må status ikke ændres væk fra Gennemført
         if (eksisterendeFaktura != null &&
             varAlleredeGennemført &&
             booking.Status != BookingStatus.Gennemført)
@@ -87,51 +80,34 @@ public class BookingApplicationService : IBookingApplicationService
             );
         }
 
-        // 1) Valider den nye version af booking (det er 'booking' fra UI)
+        // 1) Valider ny version
         await _validator.ValidateAsync(booking);
 
-        // 2) Gem ændringerne på booking
+        // 2) Gem ændringer
         await _data.UpdateBookingAsync(booking);
 
-        // 🔄 HENT booking igen EFTER vi har gemt,
-        // så vi er 100% sikre på at vi arbejder med den rigtige, opdaterede version
+        // 3) Hent opdateret booking
         var opdateret = await _data.GetBookingAsync(booking.BookingId);
         if (opdateret is null)
             throw new InvalidOperationException("Booking kunne ikke genindlæses efter opdatering.");
 
-        // 3) Hvis booking går fra IKKE-gennemført → Gennemført:
+        // 4) Overgang: ikke-gennemført → gennemført
         if (!varAlleredeGennemført && bliverNuGennemført)
         {
-            // ekstra sikkerhed: tjek at den faktisk ER gennemført nu
             if (opdateret.Status != BookingStatus.Gennemført)
             {
-                // Hvis du vil kan du ændre teksten, men det her er en mere ærlig fejl end den du får nu
                 throw new InvalidOperationException(
                     "Internt problem: booking er ikke gemt som 'Gennemført', så der kan ikke oprettes faktura."
                 );
             }
 
-            // → Opdater loyalty tier for kunden
-            var kunde = await _data.GetKundeAsync(opdateret.KundeId);
-            if (kunde is not null)
-            {
-                await _loyaltyService.OpdaterLoyaltyTierAsync(kunde);
-            }
+            // → Loyalty
+            await _loyaltyService.HandleBookingCompletedAsync(opdateret.KundeId);
 
-            // → Sørg for at der findes en faktura (brug den OPDATERDE booking)
-            var faktura = eksisterendeFaktura
-                          ?? await _data.GetFakturaForBookingAsync(opdateret.BookingId);
-
-            if (faktura == null)
-            {
-                await _data.CreateFakturaAsync(opdateret);
-            }
+            // → Faktura
+            await _fakturaService.EnsureForBookingAsync(opdateret);
         }
-
-        // Hvis den fx bare får ny tid eller medarbejder, og status ikke ændrer sig
-        // (eller forbliver Kommende), så rører vi ikke loyalty eller faktura.
     }
-
 
     // ---------- Delete ----------
 
@@ -139,26 +115,18 @@ public class BookingApplicationService : IBookingApplicationService
     {
         try
         {
-            // 1) Find booking først, så vi ved hvilken kunde den tilhører
             var booking = await _data.GetBookingAsync(id);
             if (booking is null)
             {
-                // Intet at slette
                 return;
             }
 
-            // Vi vil gerne kunne opdatere loyalty for kunden bagefter
-            var kunde = await _data.GetKundeAsync(booking.KundeId);
+            var kundeId = booking.KundeId;
 
-            // 2) Slet booking via EfDataService (den nægter selv at slette Gennemført)
             await _data.DeleteBookingAsync(id);
 
-            // 3) Efter sletning: opdater loyalty for kunden (ikke farligt,
-            // da gennemførte bookinger i forvejen ikke må slettes)
-            if (kunde is not null)
-            {
-                await _loyaltyService.OpdaterLoyaltyTierAsync(kunde);
-            }
+            // efter sletning: lad loyalty-service reagere
+            await _loyaltyService.HandleBookingDeletedAsync(kundeId);
         }
         catch (DbUpdateException ex)
         {

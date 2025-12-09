@@ -42,14 +42,7 @@
     <div class="grid gap-6">
         @foreach (var faktura in FilteredFakturaer)
         {
-            // du kan beholde disse, hvis du stadig vil vise behandling/frisør/tidspunkt
-            var booking = DataService.Bookinger.FirstOrDefault(b => b.BookingId == faktura.BookingId);
-            var behandling = booking != null
-            ? DataService.Behandlinger.FirstOrDefault(t => t.BehandlingId == booking.BehandlingId)
-            : null;
-            var medarbejder = booking != null
-            ? DataService.Medarbejdere.FirstOrDefault(m => m.MedarbejderId == booking.MedarbejderId)
-            : null;
+         
 
             <!-- Denne DIV printes som en "rigtig" faktura -->
             <div id="faktura-@faktura.FakturaId"
@@ -102,18 +95,18 @@
 
                         <div>
                             <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Behandling</h3>
-                            <p class="text-gray-900 font-medium">@behandling?.Navn</p>
-                            @if (medarbejder is not null)
+                            <p class="text-gray-900 font-medium">@faktura.BehandlingNavn</p>
+
+                            @if (!string.IsNullOrWhiteSpace(faktura.MedarbejderNavn))
                             {
-                                <p class="text-gray-600">Frisør: @medarbejder.Navn</p>
+                                <p class="text-gray-600">Frisør: @faktura.MedarbejderNavn</p>
                             }
-                            @if (booking is not null)
-                            {
-                                <p class="text-gray-600">
-                                    Tidspunkt: @booking.Tidspunkt.ToString("dd.MM.yyyy HH:mm")
-                                </p>
-                            }
+
+                            <p class="text-gray-600">
+                                Tidspunkt: @faktura.BookingTidspunkt.ToString("dd.MM.yyyy HH:mm")
+                            </p>
                         </div>
+
                     </div>
                 </div>
 
@@ -130,7 +123,7 @@
                         <tbody>
                             <tr class="border-b border-gray-100">
                                 <td class="py-2">
-                                    @behandling?.Navn
+                                    @faktura.BehandlingNavn
                                 </td>
                                 <td class="py-2 text-right">
                                     @faktura.Beløb kr
@@ -140,6 +133,7 @@
                                 </td>
                             </tr>
                         </tbody>
+
                     </table>
 
                  

@@ -46,7 +46,7 @@ public class BellaHairDbContext : DbContext
                 Percentage = 0.05m,
                 Aktiv = true,
                 IsKampagne = false,
-                RequiredLoyaltyTier = "Bronze"
+                RequiredLoyaltyTier = LoyaltyTier.Bronze
 
             },
             new Rabat
@@ -57,7 +57,7 @@ public class BellaHairDbContext : DbContext
                 Percentage = 0.10m,
                 Aktiv = true,
                 IsKampagne = false,
-                RequiredLoyaltyTier = "Sølv"
+                RequiredLoyaltyTier = LoyaltyTier.Silver
 
             },
           new Rabat
@@ -68,7 +68,7 @@ public class BellaHairDbContext : DbContext
               Percentage = 0.15m,
               Aktiv = true,
               IsKampagne = false,
-              RequiredLoyaltyTier = "Guld"
+              RequiredLoyaltyTier = LoyaltyTier.Gold
           },
 
             new Rabat

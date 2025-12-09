@@ -143,8 +143,6 @@ public class EfDataService : IDataService
         await db.SaveChangesAsync();
 
         await t.CommitAsync();
-
-        await db.SaveChangesAsync();
     }
 
     public async Task<Booking?> GetBookingAsync(int bookingId)
@@ -351,113 +349,97 @@ public class EfDataService : IDataService
     public async Task<Faktura> CreateFakturaAsync(Booking booking)
     {
         using var db = CreateContext();
-
         await using var transaction = await db.Database.BeginTransactionAsync();
 
-        // Sørg for at vi har den nyeste booking fra databasen (med BookingId)
         var dbBooking = await db.Bookinger.FindAsync(booking.BookingId);
         if (dbBooking == null)
             throw new InvalidOperationException($"Booking med id {booking.BookingId} blev ikke fundet.");
 
-        // 🔒 SIKKERHED: Faktura kun for gennemførte bookinger
         if (dbBooking.Status != BookingStatus.Gennemført)
         {
             throw new InvalidOperationException(
                 "Kan kun oprette faktura for bookinger med status 'Gennemført'.");
         }
 
-        // Tjek om der allerede findes en faktura til denne booking
         var eksisterende = await db.Fakturaer
             .FirstOrDefaultAsync(f => f.BookingId == dbBooking.BookingId);
 
         if (eksisterende is not null)
-        {
-            // Vi laver ikke en ny – vi genbruger den eksisterende
             return eksisterende;
-        }
 
-        // Find behandling for at få grundpris
+        // Find behandling og medarbejder for snapshot
         var behandling = await db.Behandlinger.FindAsync(dbBooking.BehandlingId);
+        var medarbejder = await db.Medarbejdere.FindAsync(dbBooking.MedarbejderId);
+
         var grundBeløb = behandling?.Pris ?? 0m;
 
-        // Find kunde
         var kunde = await db.Kunder.FindAsync(dbBooking.KundeId);
         if (kunde is null)
             throw new InvalidOperationException($"Kunde med id {dbBooking.KundeId} blev ikke fundet.");
 
-        // Brug bookingens dato som "historisk" dato til kampagner
         var dato = dbBooking.Tidspunkt.Date;
 
-        // Filtrer rabatter historisk
         var alleRabatter = await db.Rabatter
             .Where(r => r.Aktiv)
             .ToListAsync();
 
         var kandidater = alleRabatter
             .Where(r => r.IsWithinCampaignPeriod(dato))
-            //  kun rabatter, der giver mening for den kunde (tier)
             .Where(r => DiscountCalc.IsRabatAllowedForKunde(kunde, r))
             .ToList();
 
-        // Beregn bedste rabat
         var discountResult = DiscountCalc.CalculateBestDiscount(
             grundBeløb,
             kunde,
             kandidater);
 
         var rabatBeløb = discountResult.OriginalPrice - discountResult.FinalPrice;
-        if (rabatBeløb < 0) rabatBeløb = 0; // safety
+        if (rabatBeløb < 0) rabatBeløb = 0;
 
-        // 🔹 Tekst til rabatten – brug navnet hvis det findes
         string? rabatTekst = discountResult.AppliedDiscount?.Navn;
-
         var applied = discountResult.AppliedDiscount;
 
         if (applied is not null && rabatBeløb > 0)
         {
             if (!string.IsNullOrWhiteSpace(applied.Navn))
-            {
-                // Fx "Nytårsrabat" eller "Stamkunde Guld"
                 rabatTekst = applied.Navn;
-            }
-            else if (applied.Percentage.HasValue && applied.Percentage.Value > 0)
-            {
+            else if (applied.Percentage is > 0)
                 rabatTekst = $"{applied.Percentage.Value * 100:0.#}% rabat";
-            }
-            else if (applied.FixedAmount.HasValue && applied.FixedAmount.Value > 0)
-            {
+            else if (applied.FixedAmount is > 0)
                 rabatTekst = $"{applied.FixedAmount.Value:0.##} kr rabat";
-            }
             else
-            {
                 rabatTekst = "Rabat";
-            }
         }
-
+        
         var faktura = new Faktura
         {
             KundeId = dbBooking.KundeId,
             BookingId = dbBooking.BookingId,
-            FakturaDato = dbBooking.Tidspunkt,
 
-            // 🔹 SNAPSHOT af kunde-info
+            // datoer
+            FakturaDato = dbBooking.Tidspunkt,
+            BookingTidspunkt = dbBooking.Tidspunkt,
+
+            // kunde-snapshot
             KundeNavn = kunde.Navn,
             KundeEmail = kunde.Email,
             KundeTelefon = kunde.Telefon,
 
-            // Beløb (snapshot)
+            // behandling og medarbejder snapshots
+            BehandlingNavn = behandling?.Navn,
+            MedarbejderNavn = medarbejder?.Navn,
+
+            // beløb
             Beløb = discountResult.OriginalPrice,
             RabatBeløb = rabatBeløb,
             TotalBeløb = discountResult.FinalPrice,
 
             RabatTekst = rabatTekst,
 
-            // 🔹 BRUG KUNDENS TYPE OG FIRMADATA
             ErFirmafaktura = kunde.KundeType == KundeType.Firma,
             Firmanavn = kunde.KundeType == KundeType.Firma ? kunde.Firmanavn : null,
             Cvr = kunde.KundeType == KundeType.Firma ? kunde.Cvr : null
         };
-
 
         db.Fakturaer.Add(faktura);
 
@@ -466,8 +448,6 @@ public class EfDataService : IDataService
 
         await db.SaveChangesAsync();
         await transaction.CommitAsync();
-
-        await db.SaveChangesAsync();
 
         return faktura;
     }

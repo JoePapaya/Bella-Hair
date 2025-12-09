@@ -18,7 +18,7 @@ public class RabatServiceTest
         var kunde = new Kunde
         {
             KundeId = 1,
-            LoyaltyTier = "Guld"
+            LoyaltyTier = LoyaltyTier.Gold
         };
 
         var rabatter = new List<Rabat>
@@ -45,7 +45,7 @@ public class RabatServiceTest
         var kunde = new Kunde
         {
             KundeId = 1,
-            LoyaltyTier = "Bronze"
+            LoyaltyTier = LoyaltyTier.Bronze
         };
 
         var rabatter = new List<Rabat>
@@ -70,7 +70,7 @@ public class RabatServiceTest
         var kunde = new Kunde
         {
             KundeId = 1,
-            LoyaltyTier = "VIP"
+            LoyaltyTier = LoyaltyTier.Gold
         };
 
         var rabatter = new List<Rabat>

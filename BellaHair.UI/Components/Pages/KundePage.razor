@@ -55,12 +55,15 @@
                                     </span>
                                 }
 
-                                @if (!string.IsNullOrEmpty(kunde.LoyaltyTier))
+                                @if (kunde.LoyaltyTier != LoyaltyTier.None)
                                 {
+                                    var tierText = GetLoyaltyText(kunde.LoyaltyTier);
+
                                     <span class="@GetLoyaltyBadgeClass(kunde.LoyaltyTier) px-2 py-0.5 rounded text-xs">
-                                        @kunde.LoyaltyTier
+                                        @tierText
                                     </span>
                                 }
+
                             </div>
                             @if (isBirthdayMonth)
                             {
@@ -330,16 +333,22 @@
         }
     }
 
-    private string GetLoyaltyBadgeClass(string tier)
+    private string GetLoyaltyText(LoyaltyTier tier) => tier switch
     {
-        return tier switch
-        {
-            "Bronze" => "bg-amber-700 text-white",
-            "Sølv" => "bg-gray-400 text-white",
-            "Guld" => "bg-yellow-500 text-white",
-            _ => "bg-gray-200 text-gray-600"
-        };
-    }
+        LoyaltyTier.Bronze => "Bronze",
+        LoyaltyTier.Silver => "Sølv",
+        LoyaltyTier.Gold => "Guld",
+        _ => "" // None → ingen tekst
+    };
+
+    private string GetLoyaltyBadgeClass(LoyaltyTier tier) => tier switch
+    {
+        LoyaltyTier.Bronze => "bg-amber-700 text-white",
+        LoyaltyTier.Silver => "bg-gray-400 text-white",
+        LoyaltyTier.Gold => "bg-yellow-500 text-white",
+        _ => "bg-gray-200 text-gray-600"
+    };
+
 
     private void OnBirthdayChanged(ChangeEventArgs e)
     {

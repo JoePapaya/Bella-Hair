@@ -1,5 +1,7 @@
 ﻿using BellaHair.Application.Interfaces;
 using BellaHair.Domain.Entities;
+using BellaHair.Domain.Enums;
+
 
 namespace BellaHair.Application.Services
 {
@@ -19,6 +21,20 @@ namespace BellaHair.Application.Services
 
             if (booking.Varighed <= 0)
                 throw new InvalidOperationException("Varighed skal være større end 0.");
+
+            var now = DateTime.Now;
+
+            // --- Regler for tid ift. status ---
+
+            if (booking.Status == BookingStatus.Kommende && booking.Tidspunkt < now)
+            {
+                throw new InvalidOperationException("Kommende bookinger skal ligge i fremtiden.");
+            }
+
+            if (booking.Status == BookingStatus.Gennemført && booking.Tidspunkt > now)
+            {
+                throw new InvalidOperationException("Gennemførte bookinger skal ligge i fortiden.");
+            }
 
             // Find eksisterende bookinger for samme medarbejder
             var eksisterende = _data.Bookinger
@@ -48,7 +64,8 @@ namespace BellaHair.Application.Services
                         booking.End > b.Start;
 
                     if (overlapper)
-                        throw new InvalidOperationException($"Kunden har allerede en anden booking fra {b.Start:t} til {b.End:t}.");
+                        throw new InvalidOperationException(
+                            $"Kunden har allerede en anden booking fra {b.Start:t} til {b.End:t}.");
                 }
             }
 

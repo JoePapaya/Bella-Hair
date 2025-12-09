@@ -4,7 +4,9 @@ namespace BellaHair.Application.Interfaces;
 
 public interface ILoyaltyService
 {
-    string BeregnLoyaltyTierForKunde(Kunde kunde);
-
+    LoyaltyTier BeregnLoyaltyTierForKunde(Kunde kunde);
     Task OpdaterLoyaltyTierAsync(Kunde kunde);
+    Task HandleBookingCompletedAsync(int kundeId);
+    Task HandleBookingDeletedAsync(int kundeId);
+
 }

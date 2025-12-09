@@ -7,23 +7,21 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ?? Use DbContextFactory instead of a long-lived DbContext
+// Db + data
 builder.Services.AddDbContextFactory<BellaHairDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// IDataService still scoped
 builder.Services.AddScoped<IDataService, EfDataService>();
 
+// Application services
 builder.Services.AddScoped<IStatisticsApplicationService, StatisticsApplicationService>();
-
 builder.Services.AddScoped<IBookingApplicationService, BookingApplicationService>();
-
 builder.Services.AddScoped<IBookingValidationService, BookingValidationService>();
-
 builder.Services.AddScoped<IRabatService, RabatService>();
-
 builder.Services.AddScoped<ILoyaltyService, LoyaltyService>();
+builder.Services.AddScoped<IFakturaApplicationService, FakturaApplicationService>();
+
 
 
 

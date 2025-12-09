@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
-    [Migration("20251208162427_InitialCreate")]
+    [Migration("20251209170313_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -135,70 +135,6 @@ namespace BellaHair.Infrastructure.Migrations
                     b.ToTable("Bookinger");
                 });
 
-            modelBuilder.Entity("BellaHair.Domain.Entities.Faktura", b =>
-                {
-                    b.Property<int>("FakturaId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FakturaId"));
-
-                    b.Property<decimal>("Beløb")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Cvr")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("ErFirmafaktura")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("FakturaDato")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Firmanavn")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("KundeEmail")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("KundeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("KundeNavn")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("KundeTelefon")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<decimal>("RabatBeløb")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("RabatTekst")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<decimal>("TotalBeløb")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("FakturaId");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("KundeId");
-
-                    b.ToTable("Fakturaer");
-                });
-
             modelBuilder.Entity("BellaHair.Domain.Entities.Kunde", b =>
                 {
                     b.Property<int>("KundeId")
@@ -234,8 +170,8 @@ namespace BellaHair.Infrastructure.Migrations
                     b.Property<int>("KundeType")
                         .HasColumnType("int");
 
-                    b.Property<string>("LoyaltyTier")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("LoyaltyTier")
+                        .HasColumnType("int");
 
                     b.Property<string>("Navn")
                         .IsRequired()
@@ -266,6 +202,7 @@ namespace BellaHair.Infrastructure.Migrations
                             Email = "kendrick@example.com",
                             Fødselsdag = new DateOnly(1987, 6, 17),
                             KundeType = 0,
+                            LoyaltyTier = 0,
                             Navn = "Kendrick",
                             Points = 0,
                             Postnr = "2100",
@@ -280,6 +217,7 @@ namespace BellaHair.Infrastructure.Migrations
                             Email = "jcole@example.com",
                             Fødselsdag = new DateOnly(1985, 1, 28),
                             KundeType = 0,
+                            LoyaltyTier = 0,
                             Navn = "J. Cole",
                             Points = 0,
                             Postnr = "8000",
@@ -294,6 +232,7 @@ namespace BellaHair.Infrastructure.Migrations
                             Email = "drake@example.com",
                             Fødselsdag = new DateOnly(1986, 10, 24),
                             KundeType = 0,
+                            LoyaltyTier = 0,
                             Navn = "Drake",
                             Points = 0,
                             Postnr = "5000",
@@ -380,8 +319,8 @@ namespace BellaHair.Infrastructure.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<string>("RequiredLoyaltyTier")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("RequiredLoyaltyTier")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("SlutDato")
                         .HasColumnType("datetime2");
@@ -402,7 +341,7 @@ namespace BellaHair.Infrastructure.Migrations
                             IsKampagne = false,
                             Navn = "Stamkunde Bronze",
                             Percentage = 0.05m,
-                            RequiredLoyaltyTier = "Bronze"
+                            RequiredLoyaltyTier = 1
                         },
                         new
                         {
@@ -412,7 +351,7 @@ namespace BellaHair.Infrastructure.Migrations
                             IsKampagne = false,
                             Navn = "Stamkunde Sølv",
                             Percentage = 0.10m,
-                            RequiredLoyaltyTier = "Sølv"
+                            RequiredLoyaltyTier = 2
                         },
                         new
                         {
@@ -422,7 +361,7 @@ namespace BellaHair.Infrastructure.Migrations
                             IsKampagne = false,
                             Navn = "Stamkunde Guld",
                             Percentage = 0.15m,
-                            RequiredLoyaltyTier = "Guld"
+                            RequiredLoyaltyTier = 3
                         },
                         new
                         {
@@ -446,6 +385,79 @@ namespace BellaHair.Infrastructure.Migrations
                             SlutDato = new DateTime(2026, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             StartDato = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
+                });
+
+            modelBuilder.Entity("Faktura", b =>
+                {
+                    b.Property<int>("FakturaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FakturaId"));
+
+                    b.Property<string>("BehandlingNavn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Beløb")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("BookingTidspunkt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Cvr")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ErFirmafaktura")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("FakturaDato")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Firmanavn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("KundeEmail")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("KundeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("KundeNavn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("KundeTelefon")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("MedarbejderNavn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("RabatBeløb")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RabatTekst")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("TotalBeløb")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("FakturaId");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("KundeId");
+
+                    b.ToTable("Fakturaer");
                 });
 
             modelBuilder.Entity("BellaHair.Domain.Entities.Booking", b =>
@@ -475,7 +487,7 @@ namespace BellaHair.Infrastructure.Migrations
                     b.Navigation("Medarbejder");
                 });
 
-            modelBuilder.Entity("BellaHair.Domain.Entities.Faktura", b =>
+            modelBuilder.Entity("Faktura", b =>
                 {
                     b.HasOne("BellaHair.Domain.Entities.Booking", "Booking")
                         .WithMany()

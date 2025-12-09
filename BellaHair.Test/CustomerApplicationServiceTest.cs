@@ -50,7 +50,7 @@ public class CustomerApplicationServiceTest
             Telefon = "12345678",
             Email = "anna@test.com",
             Fødselsdag = new DateOnly(1995, 5, 10),
-            LoyaltyTier = "Bronze"
+            LoyaltyTier = LoyaltyTier.Bronze
         };
 
         await _dataService.AddKundeAsync(kunde);

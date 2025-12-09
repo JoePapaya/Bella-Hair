@@ -22,34 +22,29 @@ public class RabatService : IRabatService
     {
         var dato = bookingDate?.Date ?? DateTime.Today;
 
-        var alleRabatter = _dataService.Rabatter.AsEnumerable();
-
-        // Kun aktive
-        alleRabatter = alleRabatter.Where(r => r.Aktiv);
-
-        // Respekter kampagneperioder
-        alleRabatter = alleRabatter.Where(r => r.IsWithinCampaignPeriod(dato));
-
-        //  NYT: filtrér væk stamkunde-rabatter som kunden IKKE har tier til
-        alleRabatter = alleRabatter.Where(r => DiscountCalc.IsRabatAllowedForKunde(kunde, r));
+        var alleRabatter = _dataService.Rabatter
+            .Where(r => r.Aktiv)
+            .Where(r => r.IsWithinCampaignPeriod(dato))
+            .Where(r => r.IsEligibleFor(kunde))
+            .ToList();
 
         return DiscountCalc.CalculateBestDiscount(
             originalPrice,
             kunde,
-            alleRabatter.ToList());
+            alleRabatter);
     }
-
 
     public IEnumerable<Rabat> GetTilgængeligeRabatterForKunde(Kunde? kunde)
     {
         var dato = DateTime.Today;
 
-        var rabatter = _dataService.Rabatter.AsEnumerable();
+        var rabatter = _dataService.Rabatter
+            .Where(r => r.Aktiv)
+            .Where(r => r.IsWithinCampaignPeriod(dato))
+            .Where(r => r.IsEligibleFor(kunde))
+            .OrderBy(r => r.Navn);
 
-        rabatter = rabatter.Where(r => r.Aktiv);
-        rabatter = rabatter.Where(r => r.IsWithinCampaignPeriod(dato));
-        rabatter = rabatter.Where(r => r.IsEligibleFor(kunde));
-
-        return rabatter.OrderBy(r => r.Navn);
+        return rabatter;
     }
+
 }

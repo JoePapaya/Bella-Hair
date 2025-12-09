@@ -18,11 +18,9 @@ public class Kunde
 
     public string? Firmanavn { get; set; }
     public string? Cvr { get; set; }
-
-
     public int Points { get; set; } = 0;
     public int BesøgAntal { get; set; } = 0;
 
     // Bronze / Sølv / Guld / None – som tekst
-    public string? LoyaltyTier { get; set; }
+    public LoyaltyTier LoyaltyTier { get; set; } = LoyaltyTier.None;
 }

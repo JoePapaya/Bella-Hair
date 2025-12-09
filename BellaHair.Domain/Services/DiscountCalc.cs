@@ -9,12 +9,9 @@ namespace BellaHair.Domain.Services
 
         public static bool IsRabatAllowedForKunde(Kunde? kunde, Rabat rabat)
         {
-            if (kunde == null) return false;
-            if (!rabat.Navn.StartsWith("Stamkunde", StringComparison.OrdinalIgnoreCase))
-                return true;
-
-            return rabat.Navn.Contains(kunde.LoyaltyTier ?? "", StringComparison.OrdinalIgnoreCase);
+            return rabat.IsEligibleFor(kunde);
         }
+
 
         public static DiscountResult CalculateBestDiscount(
             decimal originalPrice,

@@ -326,7 +326,13 @@
 
         showDialog = true;
     }
-
+    private string GetLoyaltyText(LoyaltyTier tier) => tier switch
+    {
+        LoyaltyTier.Bronze => "Bronze",
+        LoyaltyTier.Silver => "Sølv",
+        LoyaltyTier.Gold => "Guld",
+        _ => ""
+    };
 
 
     private string GetDiscountLabel(DiscountResult calc, Kunde? kunde)
@@ -343,20 +349,25 @@
                 : rabat.Navn;
         }
 
-        // Stamkunderabat → vis kun navnet hvis kundens LoyaltyTier matcher
-        var tier = kunde?.LoyaltyTier;
-
-        if (!string.IsNullOrWhiteSpace(tier) &&
-            !string.IsNullOrWhiteSpace(rabat.Navn) &&
-            rabat.Navn.Contains(tier, StringComparison.OrdinalIgnoreCase))
+        // Stamkunderabat → vis kun navnet hvis kundens LoyaltyTier matcher navnet
+        if (kunde is not null &&
+            kunde.LoyaltyTier != LoyaltyTier.None &&
+            !string.IsNullOrWhiteSpace(rabat.Navn))
         {
-            // Fx kunde.LoyaltyTier = "Bronze", rabat.Navn = "Stamkunde Bronze"
-            return rabat.Navn;
+            var tierText = GetLoyaltyText(kunde.LoyaltyTier); // "Bronze", "Sølv", "Guld"
+
+            if (!string.IsNullOrWhiteSpace(tierText) &&
+                rabat.Navn.Contains(tierText, StringComparison.OrdinalIgnoreCase))
+            {
+                // Fx kunde tier = Bronze, rabat.Navn = "Stamkunde Bronze"
+                return rabat.Navn;
+            }
         }
 
-        // Kunden er ikke den tier → vis ikke Bronze/Sølv/Guld-navnet, kun generisk
         return "Rabat";
     }
+
+
 
 
     private async Task EditBooking(int id)
@@ -566,13 +577,16 @@
         }
 
         // Loyalty badge
-        if (!string.IsNullOrEmpty(kunde?.LoyaltyTier))
+        if (kunde is not null && kunde.LoyaltyTier != LoyaltyTier.None)
         {
+            var tierText = GetLoyaltyText(kunde.LoyaltyTier);
+
             __builder.OpenElement(12, "span");
             __builder.AddAttribute(13, "class", "px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700");
-            __builder.AddContent(14, kunde!.LoyaltyTier);
+            __builder.AddContent(14, tierText);
             __builder.CloseElement(); // span
         }
+
 
         // Status badge
         __builder.OpenElement(15, "span");
@@ -662,6 +676,9 @@
         __builder.CloseElement(); // actions-div
 
         __builder.CloseElement(); // row div
+
+
+
     };
 
 }

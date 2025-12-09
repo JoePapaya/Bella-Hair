@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BellaHair.Domain.Entities;
+﻿using BellaHair.Domain.Entities;
 
 namespace BellaHair.Domain.Services.DiscountStrategies
 {
@@ -18,10 +13,8 @@ namespace BellaHair.Domain.Services.DiscountStrategies
 
         public bool IsAllowedFor(Kunde? kunde)
         {
-            if (kunde == null || string.IsNullOrWhiteSpace(kunde.LoyaltyTier))
-                return false;
-
-            return _rabat.Navn.Contains(kunde.LoyaltyTier, StringComparison.OrdinalIgnoreCase);
+         
+            return _rabat.IsEligibleFor(kunde);
         }
 
         public decimal Apply(decimal originalPrice)

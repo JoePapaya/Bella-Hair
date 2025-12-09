@@ -91,58 +91,106 @@
 
 @if (_discountStats is not null)
 {
-    <!-- Rabat-statistik (sidste 30 dage) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <!-- Stamkunderabat -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6 flex flex-col gap-2">
-            <p class="text-gray-600 text-sm mb-1">Stamkunderabat (30 dage)</p>
-            <p class="text-gray-900 text-2xl font-semibold">
-                @Math.Round(_discountStats.Stamkunde.ShareOfAllBookingsPercent, 1)% af alle bookinger
-            </p>
-            <p class="text-gray-600 text-sm">
-                Antal bookinger med stamkunderabat: @_discountStats.Stamkunde.NumberOfBookings
-            </p>
-            <p class="text-gray-600 text-sm">
-                Rabat i alt: @_discountStats.Stamkunde.DiscountAmount.ToString("C")
-            </p>
-            <p class="text-gray-600 text-sm">
-                Gns. rabat pr. booking: @_discountStats.Stamkunde.AverageDiscountPerBooking.ToString("C")
-            </p>
+
+        <!-- Stamkunderabat givet -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6 flex items-start gap-4">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <!-- discount tag icon -->
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M7 7l10 10-4 4L3 11V7h4z" />
+                    <circle cx="9" cy="9" r="1.3" />
+                </svg>
+            </div>
+
+            <div class="flex-1">
+                <div class="flex items-center justify-between mb-1">
+                    <p class="text-gray-600 text-sm">Stamkunderabat</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                        @Math.Round(_discountStats.Stamkunde.ShareOfAllBookingsPercent, 1)% af bookinger
+                    </span>
+                </div>
+
+                <p class="text-gray-900 text-2xl font-semibold mb-2">
+                    @_discountStats.Stamkunde.DiscountAmount.ToString("C")
+                </p>
+
+                <p class="text-gray-600 text-sm">
+                    Antal bookinger: @_discountStats.Stamkunde.NumberOfBookings
+                </p>
+                <p class="text-gray-600 text-sm">
+                    Gns. rabat pr. booking: @_discountStats.Stamkunde.AverageDiscountPerBooking.ToString("C")
+                </p>
+            </div>
         </div>
 
-        <!-- Kampagner -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6 flex flex-col gap-2">
-            <p class="text-gray-600 text-sm mb-1">Kampagner (30 dage)</p>
-            <p class="text-gray-900 text-2xl font-semibold">
-                @Math.Round(_discountStats.Kampagner.ShareOfAllBookingsPercent, 1)% af alle bookinger
-            </p>
-            <p class="text-gray-600 text-sm">
-                Antal bookinger med kampagnerabat: @_discountStats.Kampagner.NumberOfBookings
-            </p>
-            <p class="text-gray-600 text-sm">
-                Rabat i alt: @_discountStats.Kampagner.DiscountAmount.ToString("C")
-            </p>
-            <p class="text-gray-600 text-sm">
-                Gns. rabat pr. booking: @_discountStats.Kampagner.AverageDiscountPerBooking.ToString("C")
-            </p>
+        <!-- Kampagnerabat givet -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6 flex items-start gap-4">
+            <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                <!-- megaphone / campaign icon -->
+                <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 11v2a1 1 0 001 1h2l4 4v-12l-4 4H4a1 1 0 00-1 1z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M16 9a4 4 0 010 6" />
+                </svg>
+            </div>
+
+            <div class="flex-1">
+                <div class="flex items-center justify-between mb-1">
+                    <p class="text-gray-600 text-sm">Kampagnerabat</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-pink-50 text-pink-700">
+                        @Math.Round(_discountStats.Kampagner.ShareOfAllBookingsPercent, 1)% af bookinger
+                    </span>
+                </div>
+
+                <p class="text-gray-900 text-2xl font-semibold mb-2">
+                    @_discountStats.Kampagner.DiscountAmount.ToString("C")
+                </p>
+
+                <p class="text-gray-600 text-sm">
+                    Antal bookinger: @_discountStats.Kampagner.NumberOfBookings
+                </p>
+                <p class="text-gray-600 text-sm">
+                    Gns. rabat pr. booking: @_discountStats.Kampagner.AverageDiscountPerBooking.ToString("C")
+                </p>
+            </div>
         </div>
 
-        <!-- Total rabat / omsætning -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6 flex flex-col gap-2">
-            <p class="text-gray-600 text-sm mb-1">Samlet rabateffekt (30 dage)</p>
-            <p class="text-gray-900 text-2xl font-semibold">
-                Total rabat: @_discountStats.TotalDiscountAmount.ToString("C")
-            </p>
-            <p class="text-gray-600 text-sm">
-                Omsætning før rabat: @_discountStats.TotalRevenueBeforeDiscount.ToString("C")
-            </p>
-            <p class="text-gray-600 text-sm">
-                Omsætning efter rabat: @_discountStats.TotalRevenueAfterDiscount.ToString("C")
-            </p>
+        <!-- Samlet rabat givet -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6 flex items-start gap-4">
+            <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <!-- chart / bars icon -->
+                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 19h16M6 17V9M12 17V5M18 17v-7" />
+                </svg>
+            </div>
+
+            <div class="flex-1">
+                <div class="flex items-center justify-between mb-1">
+                    <p class="text-gray-600 text-sm">Samlet rabat</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                        Total rabat
+                    </span>
+                </div>
+
+                <p class="text-gray-900 text-2xl font-semibold mb-2">
+                    @_discountStats.TotalDiscountAmount.ToString("C")
+                </p>
+
+                <p class="text-gray-600 text-sm">
+                    Omsætning før rabat: @_discountStats.TotalRevenueBeforeDiscount.ToString("C")
+                </p>
+                <p class="text-gray-600 text-sm">
+                    Omsætning efter rabat: @_discountStats.TotalRevenueAfterDiscount.ToString("C")
+                </p>
+            </div>
         </div>
+
     </div>
 }
-
 <!-- Seneste bookinger -->
 <div class="bg-white rounded-lg border border-gray-200">
     <div class="p-6 border-b border-gray-200 flex items-center gap-2">
@@ -196,9 +244,9 @@
 
     protected override void OnInitialized()
     {
-        // Statistik for sidste 30 dage (som du havde)
+        // Statistik for hele perioden (alt tid)
+        var from = DateTime.MinValue;
         var to = DateTime.Today;
-        var from = to.AddDays(-30);
         _discountStats = StatisticsService.GetDiscountStatistics(from, to);
 
         // Hent lister én gang
