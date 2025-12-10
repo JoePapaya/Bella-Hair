@@ -450,6 +450,23 @@
         }
     }
 
+    private void OnBehandlingChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            editModel.BehandlingId = id;
+
+            var behandling = DataService.Behandlinger
+                .FirstOrDefault(b => b.BehandlingId == id);
+
+            if (behandling != null)
+            {
+                // Her tager vi varighed direkte fra behandlingen 💪
+                editModel.Varighed = behandling.VarighedMinutter;
+            }
+        }
+    }
+
 
     private void CloseDialog()
     {

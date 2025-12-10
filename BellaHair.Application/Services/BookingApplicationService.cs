@@ -137,15 +137,18 @@ public class BookingApplicationService : IBookingApplicationService
             // efter sletning: lad loyalty-service reagere
             await _loyaltyService.HandleBookingDeletedAsync(kundeId);
         }
+        catch (InvalidOperationException)
+        {
+            // Allerede en pæn fejltekst → bare boble videre
+            throw;
+        }
         catch (DbUpdateException ex)
         {
             var inner = ex.InnerException?.Message ?? ex.Message;
-            throw new Exception(inner, ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(ex.InnerException?.Message ?? ex.Message, ex);
+            throw new InvalidOperationException(
+                "Der opstod en fejl ved sletning af bookingen: " + inner, ex);
         }
     }
+
 
 }

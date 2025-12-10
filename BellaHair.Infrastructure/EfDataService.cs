@@ -102,8 +102,18 @@ public class EfDataService : IDataService
         var existing = await db.Medarbejdere.FindAsync(medarbejderId);
         if (existing is null) return;
 
-        db.Medarbejdere.Remove(existing);
-        await db.SaveChangesAsync();
+        try
+        {
+            db.Medarbejdere.Remove(existing);
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            // Smid en pæn fejltekst videre til UI
+            throw new InvalidOperationException(
+                "Medarbejderen kan ikke slettes, fordi den er brugt i én eller flere bookinger eller fakturaer.",
+                ex);
+        }
     }
 
     public async Task<Medarbejder?> GetMedarbejderAsync(int medarbejderId)
@@ -188,9 +198,19 @@ public class EfDataService : IDataService
         var existing = await db.Kunder.FindAsync(kundeId);
         if (existing is null) return;
 
-        db.Kunder.Remove(existing);
-        await db.SaveChangesAsync();
+        try
+        {
+            db.Kunder.Remove(existing);
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException(
+                "Kunden kan ikke slettes, fordi den bruges i en booking eller faktura.",
+                ex);
+        }
     }
+
 
     public async Task<Kunde?> GetKundeAsync(int kundeId)
     {
@@ -214,14 +234,26 @@ public class EfDataService : IDataService
         await db.SaveChangesAsync();
     }
 
-    public async Task DeleteBehandlingAsync(int behandlingId)
+    public async Task DeleteBehandlingAsync(int id)
     {
-        await using var db = CreateContext();
-        var existing = await db.Behandlinger.FindAsync(behandlingId);
-        if (existing is null) return;
-        db.Behandlinger.Remove(existing);
-        await db.SaveChangesAsync();
+        using var db = CreateContext();
+        var entity = await db.Behandlinger.FirstOrDefaultAsync(b => b.BehandlingId == id);
+        if (entity is null) return;
+
+        try
+        {
+            db.Behandlinger.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException(
+                "Behandlingen kan ikke slettes, fordi den er brugt i én eller flere bookinger.",
+                ex);
+        }
     }
+
+
 
     public async Task<Behandling?> GetBehandlingAsync(int behandlingId)
     {
@@ -260,10 +292,18 @@ public class EfDataService : IDataService
         var entity = await db.Rabatter.FirstOrDefaultAsync(r => r.RabatId == id);
         if (entity is null) return;
 
-        db.Rabatter.Remove(entity);
-        await db.SaveChangesAsync();
+        try
+        {
+            db.Rabatter.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException(
+                "Rabatten kan ikke slettes, fordi den er brugt i én eller flere bookinger eller fakturaer.",
+                ex);
+        }
     }
-
     public async Task<Rabat?> GetRabatAsync(int id)
     {
         using var db = CreateContext();
