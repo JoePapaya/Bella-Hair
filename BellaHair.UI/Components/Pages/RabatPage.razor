@@ -208,6 +208,14 @@ text-sm text-gray-600 mb-1">Type</label>
                     </div>
 
                     <div>
+                        <label class="block text-sm text-gray-600 mb-1">Type</label>
+                        <select class="w-full border p-2 rounded" @bind="selectedType">
+                            <option value="Stamkunde">Stamkunderabat</option>
+                            <option value="Kampagne">Kampagnerabat</option>
+                        </select>
+                    </div>
+
+                    <div>
                         <label class="block text-sm text-gray-600 mb-1">Navn</label>
                         <input class="w-full border p-2 rounded" @bind="current.Navn" />
                     </div>
