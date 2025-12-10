@@ -15,7 +15,7 @@ public class EfDataService : IDataService
         _factory = factory;
     }
 
-    // Helper: always get a fresh context
+    
     private BellaHairDbContext CreateContext() => _factory.CreateDbContext();
 
     // ---------- Lists ----------

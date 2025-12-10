@@ -17,22 +17,20 @@ internal class TestDbContextFactory : IDbContextFactory<BellaHairDbContext>
         _options = options;
     }
 
-    public BellaHairDbContext CreateDbContext()
-        => new BellaHairDbContext(_options);
+    public BellaHairDbContext CreateDbContext() => new BellaHairDbContext(_options);
 }
 
-[NUnit.Framework.TestFixture]   // <-- fully qualified
-public class CustomerApplicationServiceTest
+[TestFixture]
+public class CreateEntitiesTests
 {
     private IDataService _dataService = null!;
     private DbContextOptions<BellaHairDbContext> _options = null!;
     private string _dbName = null!;
 
-    [NUnit.Framework.SetUp]
+    [SetUp]
     public void Setup()
     {
         _dbName = Guid.NewGuid().ToString();
-
         _options = new DbContextOptionsBuilder<BellaHairDbContext>()
             .UseInMemoryDatabase(_dbName)
             .Options;
@@ -41,21 +39,72 @@ public class CustomerApplicationServiceTest
         _dataService = new EfDataService(factory);
     }
 
-    [NUnit.Framework.Test]
-    public async Task AddKundeAsync_ShouldPersistCustomer()
+    [Test]
+    public async Task AddKunde_ShouldPersistCustomer()
     {
         var kunde = new Kunde
         {
             Navn = "Anna",
             Telefon = "12345678",
-            Email = "anna@test.com",
-            Fødselsdag = new DateOnly(1995, 5, 10),
-            LoyaltyTier = LoyaltyTier.Bronze
+            Email = "anna@test.com"
         };
 
         await _dataService.AddKundeAsync(kunde);
 
-        NUnit.Framework.Assert.That(_dataService.Kunder.Count, NUnit.Framework.Is.EqualTo(1));
-        NUnit.Framework.Assert.That(_dataService.Kunder[0].Navn, NUnit.Framework.Is.EqualTo("Anna"));
+        Assert.That(_dataService.Kunder.Count, Is.EqualTo(1));
+        Assert.That(_dataService.Kunder[0].Navn, Is.EqualTo("Anna"));
     }
+
+    [Test]
+    public async Task AddMedarbejder_ShouldPersistEmployee()
+    {
+        var medarbejder = new Medarbejder
+        {
+            Navn = "Peter",
+            ErFreelancer = true
+        };
+
+        await _dataService.AddMedarbejderAsync(medarbejder);
+
+        Assert.That(_dataService.Medarbejdere.Count, Is.EqualTo(1));
+        Assert.That(_dataService.Medarbejdere[0].Navn, Is.EqualTo("Peter"));
+    }
+
+    [Test]
+    public async Task AddBooking_ShouldPersistBooking_UsingDbContextDirectly()
+    {
+        // Arrange
+        await using var db = new BellaHairDbContext(_options);
+
+        var kunde = new Kunde { Navn = "Anna" };
+        var medarbejder = new Medarbejder { Navn = "Peter" };
+
+        db.Kunder.Add(kunde);
+        db.Medarbejdere.Add(medarbejder);
+        await db.SaveChangesAsync();
+
+        var booking = new Booking
+        {
+            KundeId = kunde.KundeId,
+            MedarbejderId = medarbejder.MedarbejderId,
+            Tidspunkt = new DateTime(2025, 1, 10, 10, 0, 0),
+            Varighed = 60
+        };
+
+        // Act
+        db.Bookinger.Add(booking);
+        await db.SaveChangesAsync();
+
+        // Assert
+        var savedBooking = await db.Bookinger.FirstOrDefaultAsync();
+        Assert.IsNotNull(savedBooking);
+        Assert.That(savedBooking.KundeId, Is.EqualTo(kunde.KundeId));
+        Assert.That(savedBooking.MedarbejderId, Is.EqualTo(medarbejder.MedarbejderId));
+    }
+
+
+
+
+
+
 }
