@@ -11,14 +11,18 @@
             <h1 class="text-gray-900 mb-2 text-2xl font-semibold">Rabatter</h1>
             <p class="text-gray-600">Administrer stamkunde- og kampagnerabatter</p>
         </div>
-        <button @onclick="NewRabat"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Ny Rabat
-        </button>
+
+        @* 
+    <button @onclick="NewRabat"
+            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Ny Rabat
+    </button>
+    *@
     </div>
+
 
     <!-- Filters -->
     <div class="mb-6 flex gap-2">
@@ -79,7 +83,7 @@
                                     <p class="text-xs text-gray-500">Gælder fra @rabat.MinimumBeløb.Value.ToString("0.00") kr</p>
                                 }
 
-                                <div class="pt-4 border-t border-gray-100 space-y-2">
+                               @*  <div class="pt-4 border-t border-gray-100 space-y-2">
                                     <button class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                                             @onclick="() => Edit(rabat)">
                                         Rediger
@@ -89,7 +93,7 @@
                                             @onclick="() => ConfirmDelete(rabat)">
                                         Slet
                                     </button>
-                                </div>
+                                </div> *@
                             </div>
                         </div>
                     </div>
@@ -99,86 +103,108 @@
     }
 
     <!-- Kampagnerabatter Section -->
-    @if ((selectedKategori == "all" || selectedKategori == "Kampagne") && KampagneRabatter.Any())
-    {
-        <div>
-            <h2 class="text-gray-900 mb-4 text-lg font-semibold">Kampagnerabatter</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach (var rabat in KampagneRabatter)
-                {
-                    var active = IsActive(rabat);
+@if ((selectedKategori == "all" || selectedKategori == "Kampagne") && KampagneRabatter.Any())
+{
+    <div>
+        <h2 class="text-gray-900 mb-4 text-lg font-semibold">Kampagnerabatter</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var rabat in KampagneRabatter)
+            {
+                var active = IsActive(rabat);
 
-                    <div class="bg-white rounded-lg border @(active ? "border-green-300" : "border-gray-200") hover:shadow-lg transition-shadow">
-                        <div class="p-6">
-                            <div class="flex items-start justify-between mb-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z">
-                                            </path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-gray-900 font-medium">@GetRabatLabel(rabat)</h3>
+                    var navn = rabat.Navn ?? "";
 
-                                        <p class="text-xs text-gray-500">@rabat.Navn</p>
-                                       
-                                    </div>
+                    var isJul = navn.Contains("jul", StringComparison.OrdinalIgnoreCase);
+                    var isNytaar = navn.Contains("nytår", StringComparison.OrdinalIgnoreCase)
+                    || navn.Contains("nytaar", StringComparison.OrdinalIgnoreCase);
+
+                    string iconBgClass;
+                    string iconEmoji;
+
+                    if (isJul)
+                    {
+                        iconBgClass = "bg-red-100 text-red-700";
+                        iconEmoji = "🎄";
+                    }
+                    else if (isNytaar)
+                    {
+                        iconBgClass = "bg-blue-100 text-blue-700";
+                        iconEmoji = "🎆";
+                    }
+                    else
+                    {
+                        iconBgClass = "bg-purple-100 text-purple-600";
+                        iconEmoji = "🏷️";
+                    }
+
+
+                <div class="bg-white rounded-lg border @(active ? "border-green-300" : "border-gray-200") hover:shadow-lg transition-shadow">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <!-- Ikon-boks -->
+                                <div class="w-10 h-10 rounded-lg flex items-center justify-center @iconBgClass">
+                                    <span class="text-xl">@iconEmoji</span>
                                 </div>
 
-                                <span class="@(active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700") px-2 py-1 text-xs rounded">
-                                    @(active ? "Aktiv" : "Inaktiv")
-                                </span>
+                                <!-- Tekster -->
+                                <div>
+                                    <!-- Øverst: kampagnenavn, fx "Julekampagne" -->
+                                    <h3 class="text-gray-900 font-medium">@rabat.Navn</h3>
+
+                                    <!-- Under: rabat-label, fx "50 kr" eller "10%" -->
+                                    <p class="text-xs text-gray-500">@GetRabatLabel(rabat)</p>
+                                </div>
                             </div>
 
-                            <div class="space-y-3">
-                                <p class="text-sm text-gray-600">@rabat.Description</p>
+                            <span class="@(active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700") px-2 py-1 text-xs rounded">
+                                @(active ? "Aktiv" : "Inaktiv")
+                            </span>
+                        </div>
 
-                                <p class="text-xs text-gray-500">
-                                    Periode:
-                                    @if (rabat.StartDato.HasValue)
-                                    {
-                                        @rabat.StartDato.Value.ToString("dd-MM-yyyy")
-                                    }
-                                    else
-                                    {
-                                        @("Ingen startdato")
-                                    }
-                                    –
-                                    @if (rabat.SlutDato.HasValue)
-                                    {
-                                        @rabat.SlutDato.Value.ToString("dd-MM-yyyy")
-                                    }
-                                    else
-                                    {
-                                        @("Ingen slutdato")
-                                    }
-                                </p>
+                        <div class="space-y-3">
+                            <p class="text-sm text-gray-600">@rabat.Description</p>
 
-                                @if (rabat.MinimumBeløb.HasValue)
+                            <p class="text-xs text-gray-500">
+                                Periode:
+                                @if (rabat.StartDato.HasValue)
                                 {
-                                    <p class="text-xs text-gray-500">Gælder fra @rabat.MinimumBeløb.Value.ToString("0.00") kr</p>
+                                    @rabat.StartDato.Value.ToString("dd-MM-yyyy")
                                 }
+                                else
+                                {
+                                    @("Ingen startdato")
+                                }
+                                –
+                                @if (rabat.SlutDato.HasValue)
+                                {
+                                    @rabat.SlutDato.Value.ToString("dd-MM-yyyy")
+                                }
+                                else
+                                {
+                                    @("Ingen slutdato")
+                                }
+                            </p>
 
-                                <div class="pt-4 border-t border-gray-100 space-y-2">
-                                    <button class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                                            @onclick="() => Edit(rabat)">
-                                        Rediger
-                                    </button>
+                            @if (rabat.MinimumBeløb.HasValue)
+                            {
+                                <p class="text-xs text-gray-500">Gælder fra @rabat.MinimumBeløb.Value.ToString("0.00") kr</p>
+                            }
 
-                                    <button class="w-full px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
-                                            @onclick="() => ConfirmDelete(rabat)">
-                                        Slet
-                                    </button>
-                                </div>
+                            @* Dine rediger/slet-knapper er stadig kommenteret ud her, så de vises ikke *@
+                            @* 
+                            <div class="pt-4 border-t border-gray-100 space-y-2">
+                                ...
                             </div>
+                            *@
                         </div>
                     </div>
-                }
-            </div>
+                </div>
+            }
         </div>
-    }
+    </div>
+}
+
 
     @if (!rabatter.Any())
     {

@@ -283,12 +283,16 @@
     }
 
     private string GetStatusBadgeClass(BookingStatus status) =>
-        status switch
-        {
-            BookingStatus.Kommende => "bg-blue-100 text-blue-700",
-            BookingStatus.Gennemført => "bg-gray-100 text-gray-700",
-            _ => "bg-gray-100 text-gray-700"
-        };
+     status switch
+     {
+         // Kommende = gul
+         BookingStatus.Kommende => "bg-yellow-100 text-yellow-700",
+
+         // Gennemført = grøn
+         BookingStatus.Gennemført => "bg-green-100 text-green-700",
+
+         _ => "bg-gray-100 text-gray-700"
+     };
 
     private string GetStatusTitle() =>
         selectedStatus switch
@@ -450,22 +454,7 @@
         }
     }
 
-    private void OnBehandlingChanged(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out var id))
-        {
-            editModel.BehandlingId = id;
-
-            var behandling = DataService.Behandlinger
-                .FirstOrDefault(b => b.BehandlingId == id);
-
-            if (behandling != null)
-            {
-                // Her tager vi varighed direkte fra behandlingen 💪
-                editModel.Varighed = behandling.VarighedMinutter;
-            }
-        }
-    }
+   
 
 
     private void CloseDialog()
@@ -478,6 +467,17 @@
     {
         if (!deleteBookingId.HasValue)
             return;
+
+        // Ekstra tjek: må ikke slette gennemført booking
+        var booking = DataService.Bookinger
+            .FirstOrDefault(b => b.BookingId == deleteBookingId.Value);
+
+        if (booking?.Status == BookingStatus.Gennemført)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Du kan ikke slette en gennemført booking.");
+            deleteBookingId = null;
+            return;
+        }
 
         try
         {
@@ -494,6 +494,22 @@
             StateHasChanged();
         }
     }
+
+    private string GetLoyaltyBadgeClass(LoyaltyTier tier) =>
+    tier switch
+    {
+        // Bronze = bronze-agtig (amber)
+        LoyaltyTier.Bronze => "px-2 py-0.5 rounded text-xs bg-amber-700 text-white",
+
+        // Sølv = grå/sølv
+        LoyaltyTier.Silver => "px-2 py-0.5 rounded text-xs bg-gray-300 text-gray-800",
+
+        // Guld = gul/guld
+        LoyaltyTier.Gold => "px-2 py-0.5 rounded text-xs bg-yellow-400 text-yellow-900",
+
+        _ => "px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600"
+    };
+
 
     // Lille hjælpemetode for at undgå duplikeret markup
     private RenderFragment BookingRow(Booking booking) => __builder =>
@@ -596,13 +612,15 @@
         // Loyalty badge
         if (kunde is not null && kunde.LoyaltyTier != LoyaltyTier.None)
         {
-            var tierText = GetLoyaltyText(kunde.LoyaltyTier);
+            var tierText = GetLoyaltyText(kunde.LoyaltyTier); // "Bronze", "Sølv", "Guld"
+            var loyaltyClass = GetLoyaltyBadgeClass(kunde.LoyaltyTier);
 
             __builder.OpenElement(12, "span");
-            __builder.AddAttribute(13, "class", "px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700");
+            __builder.AddAttribute(13, "class", loyaltyClass);
             __builder.AddContent(14, tierText);
             __builder.CloseElement(); // span
         }
+
 
 
         // Status badge
@@ -675,14 +693,17 @@
         __builder.OpenElement(46, "div");
         __builder.AddAttribute(47, "class", "flex gap-2");
 
-        __builder.OpenElement(48, "button");
-        __builder.AddAttribute(49, "class", "p-2 hover:bg-gray-200 rounded");
-        __builder.AddAttribute(50, "onclick", EventCallback.Factory.Create(this, () => EditBooking(booking.BookingId)));
-        __builder.AddContent(51, "✏️");
-        __builder.CloseElement(); // button
-
-        if (booking.Status != BookingStatus.Gennemført)
+        // Kun hvis booking er KOMMENDE må vi redigere/slette
+        if (booking.Status == BookingStatus.Kommende)
         {
+            // Rediger-knap
+            __builder.OpenElement(48, "button");
+            __builder.AddAttribute(49, "class", "p-2 hover:bg-gray-200 rounded");
+            __builder.AddAttribute(50, "onclick", EventCallback.Factory.Create(this, () => EditBooking(booking.BookingId)));
+            __builder.AddContent(51, "✏️");
+            __builder.CloseElement(); // button
+
+            // Slet-knap
             __builder.OpenElement(52, "button");
             __builder.AddAttribute(53, "class", "p-2 hover:bg-gray-200 rounded text-red-600");
             __builder.AddAttribute(54, "onclick", EventCallback.Factory.Create(this, () => deleteBookingId = booking.BookingId));
@@ -691,6 +712,7 @@
         }
 
         __builder.CloseElement(); // actions-div
+
 
         __builder.CloseElement(); // row div
 
