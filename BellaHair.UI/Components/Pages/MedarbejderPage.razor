@@ -167,10 +167,31 @@
 
     async Task ConfirmDelete(int id)
     {
-        if (await JSRuntime.InvokeAsync<bool>("confirm", "Er du sikker på du vil slette medarbejderen?"))
+        var confirmed = await JSRuntime.InvokeAsync<bool>(
+            "confirm",
+            "Er du sikker på du vil slette medarbejderen?"
+        );
+
+        if (!confirmed)
+            return;
+
+        try
         {
             await DataService.DeleteMedarbejderAsync(id);
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Specifik besked fra EfDataService (fx hvis medarbejderen har bookinger)
+            await JSRuntime.InvokeVoidAsync("alert", ex.Message);
+        }
+        catch (Exception)
+        {
+            // Fallback hvis noget andet går galt
+            await JSRuntime.InvokeVoidAsync(
+                "alert",
+                "Der opstod en uventet fejl ved sletning af medarbejderen."
+            );
         }
     }
 

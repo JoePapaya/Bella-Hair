@@ -2,6 +2,8 @@
 @using BellaHair.Domain.Entities
 @inject BellaHair.Application.Interfaces.IDataService DataService
 @rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+
 
 <div class="p-8">
     <div class="flex items-center justify-between mb-8">
@@ -199,6 +201,14 @@
                     <div>
                         <label class="b
 text-sm text-gray-600 mb-1">Type</label>
+                        <select class="w-full border p-2 rounded" @bind="selectedType">
+                            <option value="Stamkunde">Stamkunderabat</option>
+                            <option value="Kampagne">Kampagnerabat</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Type</label>
                         <select class="w-full border p-2 rounded" @bind="selectedType">
                             <option value="Stamkunde">Stamkunderabat</option>
                             <option value="Kampagne">Kampagnerabat</option>
@@ -484,13 +494,36 @@ text-sm text-gray-600 mb-1">Type</label>
 
     private async Task DeleteConfirmed()
     {
-        if (toDelete is not null)
+        if (toDelete is null)
+            return;
+
+        try
+        {
             await DataService.DeleteRabatAsync(toDelete.RabatId);
 
-        showDelete = false;
-        toDelete = null;
-        Load();
+            showDelete = false;
+            toDelete = null;
+            Load();
+        }
+        catch (InvalidOperationException ex)
+        {
+            showDelete = false;
+            toDelete = null;
+
+            await JSRuntime.InvokeVoidAsync("alert", ex.Message);
+        }
+        catch (Exception)
+        {
+            showDelete = false;
+            toDelete = null;
+
+            await JSRuntime.InvokeVoidAsync(
+                "alert",
+                "Der opstod en uventet fejl ved sletning af rabatten."
+            );
+        }
     }
+
 
     private string GetRabatLabel(Rabat rabat)
     {
