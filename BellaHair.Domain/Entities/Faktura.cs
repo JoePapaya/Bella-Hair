@@ -29,7 +29,4 @@ public class Faktura
     public decimal TotalBeløb { get; set; }
     public string? RabatTekst { get; set; }
 
-    // Navigation
-    public Kunde? Kunde { get; set; }
-    public Booking? Booking { get; set; }
 }

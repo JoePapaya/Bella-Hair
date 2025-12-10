@@ -12,7 +12,6 @@ public class Rabat
     public decimal? FixedAmount { get; set; }
 
     // Stamkunde-rabat: kræver Bronze/Silver/Gold
-    // null = ingen krav (typisk kampagnerabat eller generel rabat)
     public LoyaltyTier? RequiredLoyaltyTier { get; set; }
 
     public bool Aktiv { get; set; } = true;

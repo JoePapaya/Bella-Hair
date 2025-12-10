@@ -64,7 +64,7 @@ public class BellaHairDbContext : DbContext
           {
               RabatId = 1003,
               Navn = "Stamkunde Guld",
-              Description = "15% rabat til stamkunder med 20 eller flere besøg",
+              Description = "15% rabat til stamkunder med 20+ besøg",
               Percentage = 0.15m,
               Aktiv = true,
               IsKampagne = false,
@@ -102,42 +102,6 @@ public class BellaHairDbContext : DbContext
             }
 
         );
-
-        // ---------- Faktura ----------
-        modelBuilder.Entity<Faktura>(entity =>
-        {
-            entity.Property(f => f.Beløb)
-                  .HasPrecision(18, 2);
-
-            entity.Property(f => f.RabatBeløb)
-                  .HasPrecision(18, 2);
-
-            entity.Property(f => f.TotalBeløb)
-                  .HasPrecision(18, 2);
-
-            entity.Property(f => f.RabatTekst)
-                  .HasMaxLength(200);
-
-            // 🔹 Snapshot felter
-            entity.Property(f => f.KundeNavn)
-                  .HasMaxLength(200);
-
-            entity.Property(f => f.KundeEmail)
-                  .HasMaxLength(200);
-
-            entity.Property(f => f.KundeTelefon)
-                  .HasMaxLength(50);
-
-            entity.HasOne(f => f.Kunde)
-                  .WithMany()
-                  .HasForeignKey(f => f.KundeId)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(f => f.Booking)
-                  .WithMany()
-                  .HasForeignKey(f => f.BookingId)
-                  .OnDelete(DeleteBehavior.Restrict);
-        });
 
 
         // ---------- SEED: KUNDER ----------
@@ -239,7 +203,42 @@ public class BellaHairDbContext : DbContext
                 VarighedMinutter = 30
             }
         );
+        // ---------- Faktura ----------
+        modelBuilder.Entity<Faktura>(entity =>
+        {
+            entity.Property(f => f.Beløb)
+                  .HasPrecision(18, 2);
 
+            entity.Property(f => f.RabatBeløb)
+                  .HasPrecision(18, 2);
+
+            entity.Property(f => f.TotalBeløb)
+                  .HasPrecision(18, 2);
+
+            entity.Property(f => f.RabatTekst)
+                  .HasMaxLength(200);
+
+            // 🔹 Snapshot felter
+            entity.Property(f => f.KundeNavn)
+                  .HasMaxLength(200);
+
+            entity.Property(f => f.KundeEmail)
+                  .HasMaxLength(200);
+
+            entity.Property(f => f.KundeTelefon)
+                  .HasMaxLength(50);
+
+            // 🔹 FK til Kunde – uden navigation property på Faktura
+            entity.HasOne<Kunde>()
+                  .WithMany()
+                  .HasForeignKey(f => f.KundeId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // 🔹 FK til Booking – uden navigation property på Faktura
+            entity.HasOne<Booking>()
+                  .WithMany()
+                  .HasForeignKey(f => f.BookingId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
     }
-
 }
