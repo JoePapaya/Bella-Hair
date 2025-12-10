@@ -14,14 +14,15 @@ namespace BellaHair.Domain.Services
 
 
         public static DiscountResult CalculateBestDiscount(
-            decimal originalPrice,
-            Kunde? kunde,
-            IEnumerable<Rabat> rabatter)
+        decimal originalPrice,
+        Kunde? kunde,
+        IEnumerable<Rabat> rabatter,
+        DateTime dato)
         {
             lock (_syncLock)
             {
                 var strategies = rabatter
-                    .Select(r => DiscountStrategyFactory.Create(r))
+                    .Select(DiscountStrategyFactory.Create)
                     .ToList();
 
                 decimal bestFinal = originalPrice;
@@ -29,7 +30,7 @@ namespace BellaHair.Domain.Services
 
                 foreach (var strategy in strategies)
                 {
-                    if (!strategy.IsAllowedFor(kunde))
+                    if (!strategy.IsAllowedFor(kunde, originalPrice, dato))
                         continue;
 
                     var final = strategy.Apply(originalPrice);
@@ -54,5 +55,7 @@ namespace BellaHair.Domain.Services
                 };
             }
         }
+
+
     }
 }

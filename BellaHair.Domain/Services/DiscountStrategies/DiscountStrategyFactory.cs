@@ -12,11 +12,11 @@ namespace BellaHair.Domain.Services.DiscountStrategies
     {
         public static IDiscountStrategy Create(Rabat rabat)
         {
-            if (rabat.Navn.StartsWith("Stamkunde", StringComparison.OrdinalIgnoreCase))
-                return new LoyaltyDiscountStrategy(rabat);
+            if (rabat.IsKampagne)
+                return new CampaignDiscountStrategy(rabat);
 
-            return new CampaignDiscountStrategy(rabat);
-
+            return new LoyaltyDiscountStrategy(rabat);
         }
     }
+
 }

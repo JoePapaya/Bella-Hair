@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
-    [Migration("20251209170313_InitialCreate")]
+    [Migration("20251210172310_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -357,7 +357,7 @@ namespace BellaHair.Infrastructure.Migrations
                         {
                             RabatId = 1003,
                             Aktiv = true,
-                            Description = "15% rabat til stamkunder med 20 eller flere besøg",
+                            Description = "15% rabat til stamkunder med 20+ besøg",
                             IsKampagne = false,
                             Navn = "Stamkunde Guld",
                             Percentage = 0.15m,
@@ -489,21 +489,17 @@ namespace BellaHair.Infrastructure.Migrations
 
             modelBuilder.Entity("Faktura", b =>
                 {
-                    b.HasOne("BellaHair.Domain.Entities.Booking", "Booking")
+                    b.HasOne("BellaHair.Domain.Entities.Booking", null)
                         .WithMany()
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("BellaHair.Domain.Entities.Kunde", "Kunde")
+                    b.HasOne("BellaHair.Domain.Entities.Kunde", null)
                         .WithMany()
                         .HasForeignKey("KundeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Kunde");
                 });
 #pragma warning restore 612, 618
         }

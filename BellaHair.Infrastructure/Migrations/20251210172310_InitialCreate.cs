@@ -207,7 +207,7 @@ namespace BellaHair.Infrastructure.Migrations
                 {
                     { 1001, true, "5% rabat stamkunder med 5 til 9 besøg", null, false, null, "Stamkunde Bronze", 0.05m, 1, null, null },
                     { 1002, true, "10% rabat til stamkunder med 10 til 19 besøg", null, false, null, "Stamkunde Sølv", 0.10m, 2, null, null },
-                    { 1003, true, "15% rabat til stamkunder med 20 eller flere besøg", null, false, null, "Stamkunde Guld", 0.15m, 3, null, null },
+                    { 1003, true, "15% rabat til stamkunder med 20+ besøg", null, false, null, "Stamkunde Guld", 0.15m, 3, null, null },
                     { 2001, true, "Julekampagne: 50 kr rabat på alle behandlinger", 50m, true, null, "Julekampagne", null, null, new DateTime(2025, 12, 24, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2025, 12, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
                     { 2002, true, "5% rabat i januar", null, true, null, "Nytårsrabat", 0.05m, null, new DateTime(2026, 1, 31, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) }
                 });

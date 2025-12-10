@@ -28,16 +28,14 @@ public class Rabat
     public bool IsWithinCampaignPeriod(DateTime dato)
     {
         if (!IsKampagne)
-            return true;
+            return true; // ← beholdes, normalt er dette korrekt
 
-        if (StartDato.HasValue && dato < StartDato.Value.Date)
-            return false;
+        if (StartDato is null || SlutDato is null)
+            return false; // ← NYT: kampagne UDEN datoer = ugyldig
 
-        if (SlutDato.HasValue && dato > SlutDato.Value.Date)
-            return false;
-
-        return true;
+        return dato >= StartDato.Value.Date && dato <= SlutDato.Value.Date;
     }
+
 
     public bool IsEligibleFor(Kunde? kunde)
     {

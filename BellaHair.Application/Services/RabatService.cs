@@ -15,24 +15,27 @@ public class RabatService : IRabatService
     }
 
     public DiscountResult BeregnBedsteRabat(
-        decimal originalPrice,
-        Kunde? kunde,
-        string? valgtRabatCode,
-        DateTime? bookingDate = null)
+    decimal originalPrice,
+    Kunde? kunde,
+    string? valgtRabatCode,
+    DateTime? bookingDate = null)
     {
         var dato = bookingDate?.Date ?? DateTime.Today;
 
-        var alleRabatter = _dataService.Rabatter
+        var rabatter = _dataService.Rabatter
             .Where(r => r.Aktiv)
-            .Where(r => r.IsWithinCampaignPeriod(dato))
-            .Where(r => r.IsEligibleFor(kunde))
             .ToList();
 
         return DiscountCalc.CalculateBestDiscount(
             originalPrice,
             kunde,
-            alleRabatter);
+            rabatter,
+            dato
+        );
     }
+
+
+
 
     public IEnumerable<Rabat> GetTilgængeligeRabatterForKunde(Kunde? kunde)
     {

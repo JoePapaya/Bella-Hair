@@ -11,10 +11,16 @@ namespace BellaHair.Domain.Services.DiscountStrategies
             _rabat = rabat;
         }
 
-        public bool IsAllowedFor(Kunde? kunde)
+        public bool IsAllowedFor(Kunde? kunde, decimal originalPrice, DateTime dato)
         {
-         
-            return _rabat.IsEligibleFor(kunde);
+            // Ikke kampagne → tjek eligibility
+            if (!_rabat.IsEligibleFor(kunde))
+                return false;
+
+            if (_rabat.MinimumBeløb.HasValue && originalPrice < _rabat.MinimumBeløb.Value)
+                return false;
+
+            return true;
         }
 
         public decimal Apply(decimal originalPrice)
@@ -22,7 +28,7 @@ namespace BellaHair.Domain.Services.DiscountStrategies
             return _rabat.Apply(originalPrice);
         }
 
-        public bool IsKampagne => _rabat.IsKampagne;
+        public bool IsKampagne => false;
         public string Navn => _rabat.Navn;
         public Rabat RabatObjekt => _rabat;
     }
