@@ -173,10 +173,34 @@
 
     private async Task DeleteBehandling(int id)
     {
-        var ok = await JSRuntime.InvokeAsync<bool>("confirm", "Er du sikker på at du vil slette denne behandling?");
-        if (!ok) return;
+        var ok = await JSRuntime.InvokeAsync<bool>(
+            "confirm",
+            "Er du sikker på at du vil slette denne behandling?"
+        );
 
-        await DataService.DeleteBehandlingAsync(id);
-        StateHasChanged();
+        if (!ok)
+            return;
+
+        try
+        {
+            await DataService.DeleteBehandlingAsync(id);
+
+            // Rerender når sletning lykkes
+            StateHasChanged();
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Specifik besked fra EfDataService (fx hvis behandlingen er brugt i bookinger)
+            await JSRuntime.InvokeVoidAsync("alert", ex.Message);
+        }
+        catch (Exception)
+        {
+            // Generel fallback
+            await JSRuntime.InvokeVoidAsync(
+                "alert",
+                "Der opstod en uventet fejl ved sletning af behandlingen."
+            );
+        }
     }
+
 }
