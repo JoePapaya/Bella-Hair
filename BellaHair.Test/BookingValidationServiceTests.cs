@@ -51,7 +51,6 @@ namespace BellaHair.Test
             // Mock data
             _mockDataService.Setup(d => d.Bookinger).Returns(new List<Booking> { existingBooking });
 
-            // Act & Assert
             var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await _service.ValidateAsync(newBooking));
 
@@ -62,7 +61,7 @@ namespace BellaHair.Test
         public async Task ValidateAsync_ShouldNotThrow_WhenNoOverlap()
         {
             var now = DateTime.Now;
-            // Arrange
+
             var existingBooking = new Booking
             {
                 BookingId = 1,
@@ -83,7 +82,7 @@ namespace BellaHair.Test
 
             _mockDataService.Setup(d => d.Bookinger).Returns(new List<Booking> { existingBooking });
 
-            // Act & Assert
+
             Assert.DoesNotThrowAsync(async () => await _service.ValidateAsync(newBooking));
         }
     }

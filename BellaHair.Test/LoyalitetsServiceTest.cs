@@ -31,7 +31,6 @@ namespace BellaHair.Test
         [TestCase(30, LoyaltyTier.Gold)]
         public async Task OpdaterLoyaltyTierAsync_ShouldSetCorrectTier(int completedBookings, LoyaltyTier expectedTier)
         {
-            // Arrange
             var kunde = new Kunde { KundeId = 1, LoyaltyTier = LoyaltyTier.None };
 
             _mockDataService.Setup(d => d.GetCompletedBookingsCountForKundeAsync(kunde.KundeId))
@@ -41,10 +40,8 @@ namespace BellaHair.Test
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
-            // Act
             await _service.OpdaterLoyaltyTierAsync(kunde);
 
-            // Assert
             Assert.AreEqual(expectedTier, kunde.LoyaltyTier);
 
             if (kunde.LoyaltyTier != LoyaltyTier.None)
@@ -56,16 +53,13 @@ namespace BellaHair.Test
         [Test]
         public async Task HandleBookingCompletedAsync_ShouldUpdateTier_WhenKundeExists()
         {
-            // Arrange
             var kunde = new Kunde { KundeId = 1, LoyaltyTier = LoyaltyTier.None };
             _mockDataService.Setup(d => d.GetKundeAsync(kunde.KundeId)).ReturnsAsync(kunde);
             _mockDataService.Setup(d => d.GetCompletedBookingsCountForKundeAsync(kunde.KundeId)).ReturnsAsync(7);
             _mockDataService.Setup(d => d.UpdateKundeAsync(It.IsAny<Kunde>())).Returns(Task.CompletedTask);
 
-            // Act
             await _service.HandleBookingCompletedAsync(kunde.KundeId);
 
-            // Assert
             Assert.AreEqual(LoyaltyTier.Bronze, kunde.LoyaltyTier);
             _mockDataService.Verify(d => d.UpdateKundeAsync(It.IsAny<Kunde>()), Times.Once);
         }
@@ -73,10 +67,8 @@ namespace BellaHair.Test
         [Test]
         public async Task HandleBookingCompletedAsync_ShouldDoNothing_WhenKundeIsNull()
         {
-            // Arrange
             _mockDataService.Setup(d => d.GetKundeAsync(It.IsAny<int>())).ReturnsAsync((Kunde?)null);
 
-            // Act & Assert
             Assert.DoesNotThrowAsync(async () => await _service.HandleBookingCompletedAsync(1));
         }
     }

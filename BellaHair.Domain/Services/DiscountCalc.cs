@@ -11,8 +11,6 @@ namespace BellaHair.Domain.Services
         {
             return rabat.IsEligibleFor(kunde);
         }
-
-
         public static DiscountResult CalculateBestDiscount(
         decimal originalPrice,
         Kunde? kunde,

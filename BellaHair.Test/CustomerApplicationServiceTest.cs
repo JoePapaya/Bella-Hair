@@ -73,7 +73,7 @@ public class CreateEntitiesTests
     [Test]
     public async Task AddBooking_ShouldPersistBooking_UsingDbContextDirectly()
     {
-        // Arrange
+
         await using var db = new BellaHairDbContext(_options);
 
         var kunde = new Kunde { Navn = "Anna" };
@@ -91,11 +91,11 @@ public class CreateEntitiesTests
             Varighed = 60
         };
 
-        // Act
+
         db.Bookinger.Add(booking);
         await db.SaveChangesAsync();
 
-        // Assert
+
         var savedBooking = await db.Bookinger.FirstOrDefaultAsync();
         Assert.IsNotNull(savedBooking);
         Assert.That(savedBooking.KundeId, Is.EqualTo(kunde.KundeId));

@@ -1,4 +1,4 @@
-﻿using BellaHair.Domain.Enums; // hvis LoyaltyTier ligger dér
+﻿using BellaHair.Domain.Enums; 
 
 namespace BellaHair.Domain.Entities;
 
@@ -11,7 +11,7 @@ public class Rabat
     public decimal? Percentage { get; set; }
     public decimal? FixedAmount { get; set; }
 
-    // Stamkunde-rabat: kræver Bronze/Silver/Gold
+    // Stamkunde-rabat: kræver Bronze,Silver, eller Gold
     public LoyaltyTier? RequiredLoyaltyTier { get; set; }
 
     public bool Aktiv { get; set; } = true;
@@ -28,10 +28,10 @@ public class Rabat
     public bool IsWithinCampaignPeriod(DateTime dato)
     {
         if (!IsKampagne)
-            return true; // ← beholdes, normalt er dette korrekt
+            return true; 
 
         if (StartDato is null || SlutDato is null)
-            return false; // ← NYT: kampagne UDEN datoer = ugyldig
+            return false; 
 
         return dato >= StartDato.Value.Date && dato <= SlutDato.Value.Date;
     }
@@ -39,11 +39,11 @@ public class Rabat
 
     public bool IsEligibleFor(Kunde? kunde)
     {
-        // Kampagnerabat → ingen loyalty-krav
+        // Kampagnerabat ingen loyalty-krav
         if (IsKampagne)
             return true;
 
-        // Ingen loyalty-krav → alle kan få
+        // Ingen loyalty-krav alle kan få
         if (RequiredLoyaltyTier is null)
             return true;
 
@@ -51,7 +51,7 @@ public class Rabat
         if (kunde is null)
             return false;
 
-        // Kræv at kundens tier er mindst den krævede (Bronze/Silver/Gold)
+        // Kræv at kundens tier er mindst den krævede Bronze,Silver, eller Gold
         return kunde.LoyaltyTier >= RequiredLoyaltyTier.Value;
     }
 

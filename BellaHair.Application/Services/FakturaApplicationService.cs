@@ -33,7 +33,7 @@ public class FakturaApplicationService : IFakturaApplicationService
                 "Kan kun oprette faktura for bookinger med status 'Gennemført'.");
         }
 
-        // 3) Hent kunde, behandling og medarbejder (til snapshots)
+        // 3) Hent kunde, behandling og medarbejder
         var kunde = await _data.GetKundeAsync(booking.KundeId);
         if (kunde is null)
             throw new InvalidOperationException($"Kunde med id {booking.KundeId} blev ikke fundet.");
@@ -48,7 +48,7 @@ public class FakturaApplicationService : IFakturaApplicationService
             grundBeløb,
             kunde,
             null,                   // ingen manuelt valgt rabatkode endnu
-            booking.Tidspunkt       // lås rabat på booking-dato
+            booking.Tidspunkt       // lås rabat på booking dato
         );
 
         var rabatBeløb = discountResult.OriginalPrice - discountResult.FinalPrice;

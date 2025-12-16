@@ -45,10 +45,10 @@ public class BookingApplicationService : IBookingApplicationService
         // 3) Hvis den oprettes direkte som Gennemført:
         if (savedBooking.Status == BookingStatus.Gennemført)
         {
-            // → Loyalty
+            // Loyalty
             await _loyaltyService.HandleBookingCompletedAsync(savedBooking.KundeId);
 
-            // → Faktura
+            // Faktura
             await _fakturaService.EnsureForBookingAsync(savedBooking);
         }
 
@@ -69,7 +69,7 @@ public class BookingApplicationService : IBookingApplicationService
         var varAlleredeGennemført = eksisterende.Status == BookingStatus.Gennemført;
         var bliverNuGennemført = booking.Status == BookingStatus.Gennemført;
 
-        // 🔒 Hvis der findes faktura og booking VAR gennemført, må status ikke ændres væk fra Gennemført
+        // Hvis der findes faktura og booking VAR gennemført, må status ikke ændres væk fra Gennemført
         if (eksisterendeFaktura != null &&
             varAlleredeGennemført &&
             booking.Status != BookingStatus.Gennemført)
@@ -101,10 +101,10 @@ public class BookingApplicationService : IBookingApplicationService
                 );
             }
 
-            // → Loyalty
+            // Loyalty
             await _loyaltyService.HandleBookingCompletedAsync(opdateret.KundeId);
 
-            // → Faktura
+            // Faktura
             await _fakturaService.EnsureForBookingAsync(opdateret);
         }
     }
@@ -121,7 +121,7 @@ public class BookingApplicationService : IBookingApplicationService
                 return;
             }
 
-            // 🔒 Domæneregel: må ikke slette gennemførte bookinger
+            // Domæneregel: må ikke slette gennemførte bookinger
             if (booking.Status == BookingStatus.Gennemført)
             {
                 throw new InvalidOperationException(

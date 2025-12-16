@@ -24,7 +24,7 @@ public class Booking
     public BookingStatus Status { get; set; }
     public string? ValgtRabat { get; set; }
 
-    // Navigation properties (hvis du bruger dem i UI)
+    // Navigation properties til UI
     public Kunde? Kunde { get; set; }
     public Medarbejder? Medarbejder { get; set; }
     public Behandling? Behandling { get; set; }

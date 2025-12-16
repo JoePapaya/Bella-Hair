@@ -70,7 +70,7 @@ namespace BellaHair.Test
             var discountResult = new DiscountResult
             {
                 OriginalPrice = behandling.Pris,
-                FinalPrice = behandling.Pris * 0.9m, // 10% rabat
+                FinalPrice = behandling.Pris * 0.9m,
                 AppliedDiscount = appliedRabat
             };
 
@@ -100,7 +100,6 @@ namespace BellaHair.Test
         [Test]
         public void EnsureForBookingAsync_ShouldThrow_WhenBookingNotCompleted()
         {
-            // Arrange
             var booking = new Booking
             {
                 BookingId = 1,
@@ -108,7 +107,6 @@ namespace BellaHair.Test
                 Status = BookingStatus.Kommende
             };
 
-            // Act & Assert
             Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await _fakturaService.EnsureForBookingAsync(booking));
         }

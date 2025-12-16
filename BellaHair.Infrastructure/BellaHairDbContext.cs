@@ -218,7 +218,7 @@ public class BellaHairDbContext : DbContext
             entity.Property(f => f.RabatTekst)
                   .HasMaxLength(200);
 
-            // 🔹 Snapshot felter
+            // Snapshot felter
             entity.Property(f => f.KundeNavn)
                   .HasMaxLength(200);
 
@@ -228,7 +228,7 @@ public class BellaHairDbContext : DbContext
             entity.Property(f => f.KundeTelefon)
                   .HasMaxLength(50);
 
-            // 🔹 FK til Kunde – uden navigation property på Faktura
+            // FK til Kunde – uden navigation property på Faktura
             entity.HasOne<Kunde>()
                   .WithMany()
                   .HasForeignKey(f => f.KundeId)

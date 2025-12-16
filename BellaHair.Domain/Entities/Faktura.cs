@@ -11,9 +11,11 @@ public class Faktura
     public string? KundeEmail { get; set; }
     public string? KundeTelefon { get; set; }
 
-    // Behandling / medarbejder / tidspunkt snapshot
+    // Behandling / medarbejder
     public string? BehandlingNavn { get; set; }
     public string? MedarbejderNavn { get; set; }
+    
+    //tidspunkt snapshot
     public DateTime BookingTidspunkt { get; set; }
     public DateTime FakturaDato { get; set; }
 

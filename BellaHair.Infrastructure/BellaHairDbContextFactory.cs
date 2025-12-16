@@ -15,7 +15,7 @@ public class BellaHairDbContextFactory : IDesignTimeDbContextFactory<BellaHairDb
     {
         var optionsBuilder = new DbContextOptionsBuilder<BellaHairDbContext>();
 
-        // Use the SAME connection string as your Program.cs
+  
         optionsBuilder.UseSqlServer(
             "Server=(localdb)\\MSSQLLocalDB;Database=BellaHairDb;Trusted_Connection=True;MultipleActiveResultSets=true");
 

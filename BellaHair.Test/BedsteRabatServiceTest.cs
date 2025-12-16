@@ -62,8 +62,7 @@ namespace BellaHair.Test
             var resultat = _rabatService.BeregnBedsteRabat(100m, kunde, null, DateTime.Today);
 
             // Assert
-            // Kunden er Bronze → kan få Bronze rabat og kampagnerabat
-            // Den bedste rabat er kampagnerabat 15% eller stamkunde 10% → 15% er større
+            // Kunden er Bronze og kan få Bronze rabat og kampagnerabat
             Assert.AreEqual(85m, resultat.FinalPrice);
             Assert.AreEqual(rabatKampagne.RabatId, resultat.AppliedDiscount?.RabatId);
         }
@@ -97,7 +96,7 @@ namespace BellaHair.Test
             var resultat = _rabatService.BeregnBedsteRabat(100m, kunde, null, DateTime.Today);
 
             // Assert
-            // Kunden kan kun få Bronze rabat → 10%
+            // Kunden kan kun få Bronze rabat 
             Assert.AreEqual(90m, resultat.FinalPrice);
             Assert.AreEqual(rabatBronze.RabatId, resultat.AppliedDiscount?.RabatId);
         }
@@ -128,11 +127,9 @@ namespace BellaHair.Test
             _mockDataService.Setup(d => d.Rabatter)
                 .Returns(new List<Rabat> { rabatBronze, rabatKampagne });
 
-            // Act
             var resultat = _rabatService.BeregnBedsteRabat(200m, kunde, null, DateTime.Today);
 
-            // Assert
-            // Bedste rabat er kampagnerabat 25%
+      
             Assert.AreEqual(150m, resultat.FinalPrice);
             Assert.AreEqual(rabatKampagne.RabatId, resultat.AppliedDiscount?.RabatId);
         }

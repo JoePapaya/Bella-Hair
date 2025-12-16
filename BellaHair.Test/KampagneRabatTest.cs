@@ -25,7 +25,7 @@ namespace BellaHair.Test
         [Test]
         public void BeregnBedsteRabat_ShouldApplyOnlyIfWithinCampaignPeriod()
         {
-            // Arrange
+
             var today = new DateTime(2025, 1, 15);
 
             var rabatIndenfor = new Rabat
@@ -54,10 +54,9 @@ namespace BellaHair.Test
 
             _mockDataService.Setup(d => d.Rabatter).Returns(new List<Rabat> { rabatIndenfor, rabatUdenfor });
 
-            // Act
+
             var resultat = _rabatService.BeregnBedsteRabat(100m, kunde, null, today);
 
-            // Assert
             Assert.AreEqual(90m, resultat.FinalPrice); // Kun rabat indenfor perioden
             
         }
@@ -65,7 +64,6 @@ namespace BellaHair.Test
         [Test]
         public void BeregnBedsteRabat_ShouldNotApplyIfOutsideCampaignPeriod()
         {
-            // Arrange
             var dato = new DateTime(2025, 2, 1); // udenfor alle kampagner
 
             var rabat = new Rabat
@@ -83,10 +81,8 @@ namespace BellaHair.Test
 
             _mockDataService.Setup(d => d.Rabatter).Returns(new List<Rabat> { rabat });
 
-            // Act
             var resultat = _rabatService.BeregnBedsteRabat(100m, kunde, null, dato);
 
-            // Assert
             Assert.AreEqual(100m, resultat.FinalPrice);
             Assert.IsNull(resultat.AppliedDiscountName);
         }

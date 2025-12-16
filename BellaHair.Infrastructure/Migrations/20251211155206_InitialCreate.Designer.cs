@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BellaHair.Infrastructure.Migrations
 {
     [DbContext(typeof(BellaHairDbContext))]
-    [Migration("20251210172310_InitialCreate")]
+    [Migration("20251211155206_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
