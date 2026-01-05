@@ -10,6 +10,11 @@ public class CampaignDiscountStrategy : IDiscountStrategy
         _rabat = rabat;
     }
 
+    //The Rabat entity is injected through the constructor
+    //and stored in a private field so the strategy can access
+    //the discount rules throughout its lifetime.
+
+
     public bool IsAllowedFor(Kunde? kunde, decimal originalPrice, DateTime dato)
     {
         if (!_rabat.StartDato.HasValue || !_rabat.SlutDato.HasValue)
@@ -29,4 +34,6 @@ public class CampaignDiscountStrategy : IDiscountStrategy
     public string Navn => _rabat.Navn;
 
     public Rabat RabatObjekt => _rabat;
+
+
 }

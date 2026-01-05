@@ -14,3 +14,6 @@ public class DiscountResult
     public string? AppliedDiscountName { get; set; }
 
 }
+
+//“DiscountResult kan betragtes som et value object, fordi det ikke har identitet,
+//ikke persisteres, og repræsenterer et beregningsresultat, som er uforanderligt efter oprettelse.”

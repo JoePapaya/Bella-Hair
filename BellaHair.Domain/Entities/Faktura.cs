@@ -1,6 +1,9 @@
 ﻿using BellaHair.Domain.Entities;
 
 public class Faktura
+
+//“Fakturaen er en entity, men dens felter er gemt som snapshot-data
+//(immutable værdier) inspireret af value object-tankegangen.”
 {
     public int FakturaId { get; set; }
     public int KundeId { get; set; }

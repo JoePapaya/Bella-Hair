@@ -18,5 +18,4 @@ namespace BellaHair.Domain.Services.DiscountStrategies
             return new LoyaltyDiscountStrategy(rabat);
         }
     }
-
 }

@@ -11,4 +11,6 @@ namespace BellaHair.Domain.Enums
         Privat = 0,
         Firma = 1
     }
+
+
 }

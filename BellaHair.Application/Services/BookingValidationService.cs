@@ -14,6 +14,15 @@ namespace BellaHair.Application.Services
             _data = data;
         }
 
+        //“Vi definerer et interface, IBookingValidationService, som
+        //beskriver hvilke valideringsoperationer der findes. Det gør
+        //det muligt at dependency injecte servicen alle steder, hvor
+        //validering er nødvendig. BookingValidationService implementerer
+        //interfacet og får IDataService injected via constructoren.
+        //De private readonly fields er referencer til disse afhængigheder.
+        //Klassen opretter ikke selv sine afhængigheder, men får dem leveret
+        //af DI-containeren.”
+
         public Task ValidateAsync(Booking booking)
         {
             if (booking == null)
@@ -40,6 +49,9 @@ namespace BellaHair.Application.Services
             var eksisterende = _data.Bookinger
                 .Where(b => b.MedarbejderId == booking.MedarbejderId &&
                             b.BookingId != booking.BookingId);
+          
+            //“Find alle bookinger for den samme medarbejder,
+            //undtagen den booking, vi selv er i gang med.”
 
             foreach (var b in eksisterende)
             {
@@ -50,6 +62,11 @@ namespace BellaHair.Application.Services
                 if (overlapper)
                     throw new InvalidOperationException("Der findes allerede en booking i dette tidsinterval.");
             }
+
+            //“Koden gennemløber eksisterende bookinger og tjekker,
+            //om tidsintervallet overlapper med den nye booking.
+            //Hvis der findes overlap, kastes en exception for at
+            //forhindre dobbeltbooking.”
 
             if (booking.KundeId != 0)
             {
@@ -68,6 +85,12 @@ namespace BellaHair.Application.Services
                             $"Kunden har allerede en anden booking fra {b.Start:t} til {b.End:t}.");
                 }
             }
+
+
+            //“Koden tjekker, om en kunde allerede har en anden booking,
+            //der overlapper i tid. Hvis der findes overlap, kastes en
+            //exception for at forhindre dobbeltbooking.”
+
 
             return Task.CompletedTask;
         }

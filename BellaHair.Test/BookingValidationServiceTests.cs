@@ -82,7 +82,6 @@ namespace BellaHair.Test
 
             _mockDataService.Setup(d => d.Bookinger).Returns(new List<Booking> { existingBooking });
 
-
             Assert.DoesNotThrowAsync(async () => await _service.ValidateAsync(newBooking));
         }
     }

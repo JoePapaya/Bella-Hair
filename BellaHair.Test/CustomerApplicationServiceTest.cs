@@ -97,14 +97,10 @@ public class CreateEntitiesTests
 
 
         var savedBooking = await db.Bookinger.FirstOrDefaultAsync();
+        
         Assert.IsNotNull(savedBooking);
         Assert.That(savedBooking.KundeId, Is.EqualTo(kunde.KundeId));
         Assert.That(savedBooking.MedarbejderId, Is.EqualTo(medarbejder.MedarbejderId));
     }
-
-
-
-
-
 
 }

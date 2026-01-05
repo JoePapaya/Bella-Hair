@@ -3,6 +3,8 @@ using BellaHair.Domain.Entities;
 using BellaHair.Domain.Enums;
 using BellaHair.Domain.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+
 
 namespace BellaHair.Infrastructure;
 
@@ -15,7 +17,13 @@ public class EfDataService : IDataService
         _factory = factory;
     }
 
-    
+
+    //Ja, Infrastructure-laget bør primært indeholde CRUD. Hos os er størstedelen
+    //ren data-adgang via EF Core. Enkelte metoder, som DeleteBookingRawAsync og
+    //count af gennemførte bookinger, rører ved forretningsregler, men beslutningerne
+    //tages i Application- eller Domain-laget. Infrastructure udfører kun de tekniske
+    //databaseoperationer.
+
     private BellaHairDbContext CreateContext() => _factory.CreateDbContext();
 
     // ---------- Lists ----------
@@ -138,16 +146,89 @@ public class EfDataService : IDataService
     public async Task<Booking> AddBookingAsync(Booking booking)
     {
         await using var db = CreateContext();
+
+        // Serializable 
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
+        // 1) Først tjekker vi overlap for samme medarbejder i databasen 
+        var newStart = booking.Start; 
+        var newEnd = booking.End;
+
+        bool overlapMedarbejder = await db.Bookinger.AnyAsync(b =>
+            b.MedarbejderId == booking.MedarbejderId &&
+            b.BookingId != booking.BookingId &&
+            newStart < b.Tidspunkt.AddMinutes(b.Varighed) &&  
+            newEnd > b.Tidspunkt                             
+        );
+
+        if (overlapMedarbejder)
+            throw new InvalidOperationException("Der findes allerede en booking i dette tidsinterval for medarbejderen.");
+
+
+        // 2) Tjek overlap for kunden også
+        if (booking.KundeId != 0)
+        {
+            bool overlapKunde = await db.Bookinger.AnyAsync(b =>
+                b.KundeId == booking.KundeId &&
+                b.BookingId != booking.BookingId &&
+                newStart < b.Tidspunkt.AddMinutes(b.Varighed) &&
+                newEnd > b.Tidspunkt
+            );
+
+            if (overlapKunde)
+                throw new InvalidOperationException("Kunden har allerede en booking, der overlapper i dette tidsinterval.");
+        }
+
+        // 3) Gem booking
         db.Bookinger.Add(booking);
         await db.SaveChangesAsync();
+
+        // 4) Commit transaktionen
+        await tx.CommitAsync();
+
         return booking;
     }
 
     public async Task UpdateBookingAsync(Booking booking)
     {
         await using var db = CreateContext();
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
+        // 1) Tjek overlap for samme medarbejder (ekskluder dig selv)
+        var newStart = booking.Start; // eller booking.Tidspunkt hvis du bruger det
+        var newEnd = booking.End;
+
+        bool overlapMedarbejder = await db.Bookinger.AnyAsync(b =>
+            b.MedarbejderId == booking.MedarbejderId &&
+            b.BookingId != booking.BookingId &&
+            newStart < b.Tidspunkt.AddMinutes(b.Varighed) &&  // DB-slut
+            newEnd > b.Tidspunkt                             // DB-start
+        );
+
+        if (overlapMedarbejder)
+            throw new InvalidOperationException("Der findes allerede en booking i dette tidsinterval for medarbejderen.");
+
+
+        // 2) (valgfrit) Tjek overlap for kunden
+        if (booking.KundeId != 0)
+        {
+            bool overlapKunde = await db.Bookinger.AnyAsync(b =>
+                b.KundeId == booking.KundeId &&
+                b.BookingId != booking.BookingId &&
+                newStart < b.Tidspunkt.AddMinutes(b.Varighed) &&
+                newEnd > b.Tidspunkt
+            );
+
+            if (overlapKunde)
+                throw new InvalidOperationException("Kunden har allerede en booking, der overlapper i dette tidsinterval.");
+        }
+
+
+        // 3) Gem ændringen
         db.Bookinger.Update(booking);
         await db.SaveChangesAsync();
+
+        await tx.CommitAsync();
     }
     public async Task DeleteBookingRawAsync(int bookingId)
     {

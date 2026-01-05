@@ -19,6 +19,9 @@ public class FakturaApplicationService : IFakturaApplicationService
     public Task<Faktura?> GetForBookingAsync(int bookingId)
         => _data.GetFakturaForBookingAsync(bookingId);
 
+    //“Brug dataservicen til at finde den faktura,
+    //der hører til booking med dette id.”
+
     public async Task<Faktura> EnsureForBookingAsync(Booking booking)
     {
         // 1) Find eksisterende faktura
@@ -42,6 +45,9 @@ public class FakturaApplicationService : IFakturaApplicationService
         var medarbejder = await _data.GetMedarbejderAsync(booking.MedarbejderId);
 
         var grundBeløb = behandling?.Pris ?? 0m;
+
+        //“Linjen sætter grundbeløbet til behandlingens pris,
+        //eller 0 hvis behandlingen ikke findes.”
 
         // 4) Beregn rabat via RabatService (så al rabatlogik er samlet ét sted)
         var discountResult = _rabatService.BeregnBedsteRabat(

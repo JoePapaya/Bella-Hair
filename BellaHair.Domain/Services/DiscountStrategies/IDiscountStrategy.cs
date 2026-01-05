@@ -9,11 +9,10 @@ namespace BellaHair.Domain.Services.DiscountStrategies
 {
     public interface IDiscountStrategy
     {
-        bool IsAllowedFor(Kunde? kunde, decimal originalPrice, DateTime dato);
-
-        decimal Apply(decimal originalPrice);
-        bool IsKampagne { get; }
-        string Navn { get; }
         Rabat RabatObjekt { get; }
+        bool IsKampagne { get; }
+        bool IsAllowedFor(Kunde? kunde, decimal originalPrice, DateTime dato);
+        decimal Apply(decimal originalPrice);
+        string Navn { get; }
     }
 }

@@ -13,6 +13,7 @@ public class BookingApplicationService : IBookingApplicationService
     private readonly IFakturaApplicationService _fakturaService;
 
     public BookingApplicationService(
+
         IDataService data,
         IBookingValidationService validator,
         ILoyaltyService loyaltyService,
@@ -23,6 +24,13 @@ public class BookingApplicationService : IBookingApplicationService
         _loyaltyService = loyaltyService;
         _fakturaService = fakturaService;
     }
+
+    //“BookingApplicationService bruger dependency injection via constructoren,
+    //hvor den får sine afhængigheder som interfaces. De private readonly
+    //fields er referencer til disse services og gør det muligt at holde
+    //lav kobling, høj testbarhed og følge SOLID-principperne. Uden DI
+    //ville klassen være tæt koblet og svær at teste.”
+
 
     // ---------- Read ----------
 
@@ -67,6 +75,7 @@ public class BookingApplicationService : IBookingApplicationService
         var eksisterendeFaktura = await _fakturaService.GetForBookingAsync(booking.BookingId);
 
         var varAlleredeGennemført = eksisterende.Status == BookingStatus.Gennemført;
+        
         var bliverNuGennemført = booking.Status == BookingStatus.Gennemført;
 
         // Hvis der findes faktura og booking VAR gennemført, må status ikke ændres væk fra Gennemført

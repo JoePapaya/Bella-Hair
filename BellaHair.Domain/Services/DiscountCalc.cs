@@ -16,6 +16,11 @@ namespace BellaHair.Domain.Services
         Kunde? kunde,
         IEnumerable<Rabat> rabatter,
         DateTime dato)
+       
+        //Lock er ikke nødvendig her, da metoden er stateless og
+        //kun arbejder med lokale variabler og inputdata.
+        //Der deles ingen mutable data mellem tråde.
+
         {
             lock (_syncLock)
             {
@@ -24,7 +29,7 @@ namespace BellaHair.Domain.Services
                     .ToList();
 
                 decimal bestFinal = originalPrice;
-                IDiscountStrategy? best = null;
+                IDiscountStrategy? bestStrategy = null;
 
                 foreach (var strategy in strategies)
                 {
@@ -36,12 +41,12 @@ namespace BellaHair.Domain.Services
                     if (final < bestFinal)
                     {
                         bestFinal = final;
-                        best = strategy;
+                        bestStrategy = strategy;
                     }
-                    else if (final == bestFinal && best != null)
+                    else if (final == bestFinal && bestStrategy != null)
                     {
-                        if (!strategy.IsKampagne && best.IsKampagne)
-                            best = strategy;
+                        if (!strategy.IsKampagne && bestStrategy.IsKampagne)
+                            bestStrategy = strategy;
                     }
                 }
 
@@ -49,11 +54,9 @@ namespace BellaHair.Domain.Services
                 {
                     OriginalPrice = originalPrice,
                     FinalPrice = bestFinal,
-                    AppliedDiscount = best?.RabatObjekt
+                    AppliedDiscount = bestStrategy?.RabatObjekt
                 };
             }
         }
-
-
     }
 }

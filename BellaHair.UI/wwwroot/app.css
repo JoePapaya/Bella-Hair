@@ -63,7 +63,8 @@ h1:focus {
 
     /* Vis kun den valgte faktura */
     .print-faktura.print-active {
-        display: block !important;
+        display: b
+            !important;
     }
 
     body {

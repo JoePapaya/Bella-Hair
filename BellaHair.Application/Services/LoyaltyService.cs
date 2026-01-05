@@ -21,6 +21,11 @@ public class LoyaltyService : ILoyaltyService
         return LoyaltyTier.None;
     }
 
+    //“Beregningen af loyalty tier er en domæneregel, som ideelt kunne
+    //ligge i Domain-laget. I vores løsning ligger den i Application-laget,
+    //fordi opdateringen afhænger af databaseopslag og indgår i et use
+    //case-flow. Med mere tid kunne vi have flyttet selve beregningsreglen
+    //til Domain og ladet Application-laget kalde den.”
 
     public async Task OpdaterLoyaltyTierAsync(Kunde kunde)
     {
@@ -50,4 +55,8 @@ public class LoyaltyService : ILoyaltyService
 
         await OpdaterLoyaltyTierAsync(kunde);
     }
+
+    //Denne metode kaldes, når en booking markeres som gennemført eller slettes.
+    //Vi lavede da vi før ville gøre så man også ku slette genemførte bookinger
+    //Men det har vi nu fjernet.
 }

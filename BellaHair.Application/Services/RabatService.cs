@@ -33,10 +33,6 @@ public class RabatService : IRabatService
             dato
         );
     }
-
-
-
-
     public IEnumerable<Rabat> GetTilgængeligeRabatterForKunde(Kunde? kunde)
     {
         var dato = DateTime.Today;

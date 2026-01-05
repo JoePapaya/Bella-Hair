@@ -12,4 +12,9 @@ namespace BellaHair.Domain.Enums
         Stamkunde = 1,
         Kampagne = 2
     }
+    // Vi har enums til at repræsentere rabat- og kundetyper,
+    // men i UI-filtreringen blev de ikke konsekvent anvendt.
+    // I stedet bruges string-værdier ("Stamkunde", "Kampagne").
+    // Med mere tid burde vi have brugt enums direkte for
+    // bedre typesikkerhed og mindre risiko for fejl.
 }

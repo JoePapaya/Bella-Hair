@@ -1,5 +1,7 @@
 ﻿using BellaHair.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 using System;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BellaHair.Domain.Entities;
 
@@ -24,3 +26,18 @@ public class Kunde
     // Bronze / Sølv / Guld / None – som tekst
     public LoyaltyTier LoyaltyTier { get; set; } = LoyaltyTier.None;
 }
+
+//“Vi nåede ikke at lave et separat KundeApplicationService/validation-lag,
+//så pt kan man oprette kunder med tomme strings. Med mere tid ville vi have
+//håndhævet ‘Navn er påkrævet’ i Application-laget (KundeValidationService) og evt. UI-validering.”
+
+
+//*“Vi overvejede at modellere Kunde med arv, hvor PrivatKunde og FirmaKunde arver fra en fælles
+//Kunde-baseklasse.Det ville have givet en mere objektorienteret model med tydeligere adskillelse
+//af ansvar. Vi valgte dog en enklere løsning med én Kunde-entity og et KundeType-enum, fordi
+//forskellene mellem kunde-typerne er begrænsede,og fordi EF Core inheritance ville have øget
+//kompleksiteten i mapping, queries og migrations.På grund af tidsbegrænsning valgte vi den
+//mere pragmatiske løsning.”*
+
+//“Hvis firmakunder og privatkunder havde haft markant forskellig adfærd, mange forskellige
+//felter eller forskellige forretningsregler, ville arv være mere hensigtsmæssig.”
